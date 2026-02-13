@@ -1,7 +1,4 @@
 <Solution>
   <Project Path="EnumToStringFast/EnumToStringFast.csproj" />
   <Project Path="MyConsoleApp/MyConsoleApp.csproj" />
-
-  <!-- TODO: remove once using NuGet -->
-  <Project Path="../../src/ZCrew.Extensions.CodeAnalysis.CSharp/ZCrew.Extensions.CodeAnalysis.CSharp.csproj" />
 </Solution>
