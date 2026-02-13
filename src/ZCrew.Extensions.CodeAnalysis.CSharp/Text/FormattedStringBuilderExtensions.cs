@@ -1,0 +1,120 @@
+namespace ZCrew.Extensions.CodeAnalysis.CSharp.Text;
+
+public static class FormattedStringBuilderExtensions
+{
+    extension(FormattedStringBuilder builder)
+    {
+        /// <summary>
+        ///     Appends a directive to enable nullability.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        public FormattedStringBuilder AppendNullableEnable()
+        {
+            return builder.AppendLine("#nullable enable");
+        }
+
+        /// <summary>
+        ///     Appends the common <c>pragma warning disable</c> options for source generators.
+        ///     <list type="numbered">
+        ///         <listheader>
+        ///             <term>Warning</term>
+        ///             <description>Reason</description>
+        ///         </listheader>
+        ///         <item>
+        ///             <term><c>CS0618</c></term>
+        ///             <description>The user may use <see cref="ObsoleteAttribute"/> on their own types.</description>
+        ///         </item>
+        ///         <item>
+        ///             <term><c>CS1591</c></term>
+        ///             <description>The generated code will not typically provide documentation.</description>
+        ///         </item>
+        ///         <item>
+        ///             <term><c>CS8019</c></term>
+        ///             <description>
+        ///                 Extension methods aren't as readable when referenced statically. Instead, providing a using
+        ///                 directive will be clearer to the user. At times, the using directive may not be necessary
+        ///                 but this can be ignored.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        public FormattedStringBuilder AppendCommonPragmaDisable()
+        {
+            return builder.AppendLine("#pragma warning disable 0618, 1591, 8019");
+        }
+
+        /// <summary>
+        ///     Appends a <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute"/> with information about the source
+        ///     generator that created this source.
+        /// </summary>
+        /// <param name="assemblyName">
+        ///     The assembly name for the <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute.Tool"/> value.
+        /// </param>
+        /// <param name="assemblyVersion">
+        ///     The assembly version for the <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute.Version"/> value.
+        /// </param>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        public FormattedStringBuilder AppendGeneratedAttribute(string assemblyName, string assemblyVersion = "0.0.0.0")
+        {
+            return builder.AppendLine(
+                $"[global::System.CodeDom.Compiler.GeneratedCode(\"{assemblyName}\", \"{assemblyVersion}\")]"
+            );
+        }
+
+        /// <summary>
+        ///     Appends a <see langword="typeof"/> expression with opening and closing round brackets.
+        /// </summary>
+        /// <param name="typeName">The name of the type.</param>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>Given <c>"string"</c> this would append <c>"typeof(string)"</c>.</example>
+        public FormattedStringBuilder AppendTypeof(string typeName)
+        {
+            return builder.Append("typeof(").Append(typeName).Append(')');
+        }
+
+        /// <summary>
+        ///     Appends a <see langword="namespace"/> declaration if the <paramref name="namespace"/> is neither
+        ///     <see langword="null"/> nor whitespace.
+        /// </summary>
+        /// <param name="namespace">The namespace to declare, if present.</param>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        public FormattedStringBuilder AppendFileScopedNamespaceDeclaration(string? @namespace)
+        {
+            if (string.IsNullOrWhiteSpace(@namespace))
+            {
+                return builder;
+            }
+
+            return builder.Append("namespace ").Append(@namespace!).AppendLine(';');
+        }
+
+        /// <summary>
+        ///     Appends a raw <see cref="string"/> (denoted by <c>"""</c>).
+        /// </summary>
+        /// <param name="rawString">The raw string to write.</param>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     """
+        ///     {
+        ///         "value": "Foo"
+        ///     }
+        ///     """
+        /// </code>
+        /// </example>
+        public FormattedStringBuilder AppendRawString(string rawString)
+        {
+            builder.AppendLine("\"\"\"");
+
+            // Strip the newline characters to provide consistent newline characters
+            foreach (var line in rawString.Split(["\r\n", "\n"], StringSplitOptions.None))
+            {
+                builder.AppendLine(line);
+            }
+
+            builder.Append("\"\"\"");
+            return builder;
+        }
+    }
+}

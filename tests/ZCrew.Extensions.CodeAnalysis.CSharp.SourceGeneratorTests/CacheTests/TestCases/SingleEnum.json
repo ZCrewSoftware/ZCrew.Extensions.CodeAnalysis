@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "SingleEnum.Enum.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "SingleEnum.SourceText.g.cs",
+            "GeneratedFileName": "CacheTests.TestEnumSourceText.g.cs"
+        }
+    ]
+}

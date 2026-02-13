@@ -1,0 +1,33 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "All.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "All.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        },
+        {
+            "SourceFileName": "All.IDataBuilder.g.cs",
+            "GeneratedFileName": "AttributeTests.ITestAttributeDataBuilder.g.cs"
+        },
+        {
+            "SourceFileName": "All.Constructor.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeConstructor.g.cs"
+        },
+        {
+            "SourceFileName": "All.Parameter.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeParameter.g.cs"
+        },
+        {
+            "SourceFileName": "All.TypeParameter.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeTypeParameter.g.cs"
+        },
+        {
+            "SourceFileName": "All.NamedParameter.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeNamedParameter.g.cs"
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+﻿{
+    "SourceFiles": [
+        {
+            "SourceFileName": "MultipleNamedParameters.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "MultipleNamedParameters.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        },
+        {
+            "SourceFileName": "MultipleNamedParameters.IDataBuilder.g.cs",
+            "GeneratedFileName": "AttributeTests.ITestAttributeDataBuilder.g.cs"
+        },
+        {
+            "SourceFileName": "MultipleNamedParameters.Constructor.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeConstructor.g.cs"
+        },
+        {
+            "SourceFileName": "MultipleNamedParameters.NamedParameter.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeNamedParameter.g.cs"
+        }
+    ]
+}

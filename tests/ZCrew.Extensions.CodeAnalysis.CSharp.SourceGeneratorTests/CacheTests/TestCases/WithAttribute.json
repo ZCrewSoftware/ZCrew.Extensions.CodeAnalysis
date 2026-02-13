@@ -1,0 +1,33 @@
+﻿{
+    "SourceFiles": [
+        {
+            "SourceFileName": "WithAttribute.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "WithAttribute.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        },
+        {
+            "SourceFileName": "WithAttribute.IDataBuilder.g.cs",
+            "GeneratedFileName": "AttributeTests.ITestAttributeDataBuilder.g.cs"
+        },
+        {
+            "SourceFileName": "WithAttribute.Constructor.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeConstructor.g.cs"
+        },
+        {
+            "SourceFileName": "WithAttribute.NamedParameter.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeNamedParameter.g.cs"
+        },
+        {
+            "SourceFileName": "WithAttribute.TypeParameter.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeTypeParameter.g.cs"
+        },
+        {
+            "SourceFileName": "WithAttribute.Parameter.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeParameter.g.cs"
+        }
+    ]
+}

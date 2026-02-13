@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp/ZCrew.Extensions.CodeAnalysis.CSharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Although these end with ".cs" these shouldn't be compiled. The file extension helps provide editor hints. -->
+    <Compile Remove="**/TestCases/**/*.cs" />
+    <!-- Include the test case descriptors -->
+    <Content Include="**/TestCases/**/*.json" Exclude="bin/**/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Include all the non-compiled testing C# files and make them dependent upon the .json test descriptor -->
+    <Content Include="**/TestCases/**/*.cs" Exclude="bin/**/*.cs" CopyToOutputDirectory="PreserveNewest">
+      <!-- Using String.Copy until this is fixed: https://github.com/dotnet/msbuild/issues/1155 -->
+      <DependentUpon>$([System.String]::Concat($([System.String]::Copy(%(Filename)).Substring(0, $([System.String]::Copy(%(Filename)).IndexOf('.')))), '.json'))</DependentUpon>
+    </Content>
+  </ItemGroup>
+</Project>
