@@ -1,5 +1,12 @@
 <Solution>
-  <Folder Name="/docs/" />
+  <Folder Name="/docs/">
+    <File Path="docs/1-introduction.md" />
+    <File Path="docs/2-getting-started.md" />
+    <File Path="docs/3-emitting-attributes.md" />
+    <File Path="docs/4-emitting-other-abstractions.md" />
+    <File Path="docs/5-formatted-string-builder.md" />
+    <File Path="docs/6-equatable-array.md" />
+  </Folder>
   <Folder Name="/samples/" />
   <Folder Name="/src/">
     <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp/ZCrew.Extensions.CodeAnalysis.CSharp.csproj" />
