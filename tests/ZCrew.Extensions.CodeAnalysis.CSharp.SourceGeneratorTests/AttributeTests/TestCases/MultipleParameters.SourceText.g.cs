@@ -3,6 +3,7 @@
 #pragma warning disable 0618, 1591, 8019
 
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace AttributeTests;
@@ -25,4 +26,9 @@ internal static class TestAttributeSourceText
         """,
         Encoding.UTF8
     );
+    
+    public static void AddTestAttributeDefinition(this IncrementalGeneratorPostInitializationContext context)
+    {
+        context.AddSource("AttributeTests.TestAttribute.g.cs", SourceText);
+    }
 }
