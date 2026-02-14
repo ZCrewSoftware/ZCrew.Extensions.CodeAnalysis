@@ -7,6 +7,7 @@ namespace AttributeTests;
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal interface ITestAttributeDataBuilder
 {
+    void ForSymbol(global::Microsoft.CodeAnalysis.ISymbol symbol);
     void WithName(global::Microsoft.CodeAnalysis.TypedConstant constant);
     void WithValue(global::Microsoft.CodeAnalysis.TypedConstant constant);
 }
