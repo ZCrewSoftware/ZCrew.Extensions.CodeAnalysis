@@ -40,6 +40,11 @@ internal static class DataBuilderInterfaceSourceGenerator
         // Track generated method signatures to avoid duplicates
         var generatedSignatures = new HashSet<string>();
 
+        // Target ISymbol (where the attribute is located): void ForSymbol(ISymbol symbol)
+        generatedSignatures.Add("ForSymbol(ISymbol)");
+        builder.AppendLine()
+            .Append("void ForSymbol(global::Microsoft.CodeAnalysis.ISymbol symbol);");
+
         // Constructor parameters: void With{PascalName}(TypedConstant constant)
         foreach (var param in group.UniqueParameters)
         {

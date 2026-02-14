@@ -18,8 +18,9 @@ internal sealed class TestAttributeConstructor
         global::ZCrew.Extensions.CodeAnalysis.CSharp.AttributeParameter<ITestAttributeDataBuilder>[] parameters
     ) : base(parameters, TestAttributeNamedParameter.NamedParameters) { }
     
-    public static void WithAttributeData(ITestAttributeDataBuilder builder, global::Microsoft.CodeAnalysis.AttributeData attributeData)
+    public static void WithAttributeData(ITestAttributeDataBuilder builder, global::Microsoft.CodeAnalysis.AttributeData attributeData, global::Microsoft.CodeAnalysis.ISymbol targetSymbol)
     {
+        builder.ForSymbol(targetSymbol);
         foreach (var constructor in Constructors)
         {
             if (constructor.IsCalledBy(attributeData))

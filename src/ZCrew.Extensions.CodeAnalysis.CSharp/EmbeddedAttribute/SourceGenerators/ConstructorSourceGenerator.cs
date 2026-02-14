@@ -155,11 +155,13 @@ internal static class ConstructorSourceGenerator
             .AppendLine()
             .AppendLine()
             .Append(
-                $"public static void WithAttributeData({builderType} builder, global::Microsoft.CodeAnalysis.AttributeData attributeData)"
+                $"public static void WithAttributeData({builderType} builder, global::Microsoft.CodeAnalysis.AttributeData attributeData, global::Microsoft.CodeAnalysis.ISymbol targetSymbol)"
             )
             .AppendLine()
             .Append('{')
             .Indent()
+            .AppendLine()
+            .Append("builder.ForSymbol(targetSymbol);")
             .AppendLine()
             .Append("foreach (var constructor in Constructors)")
             .AppendLine()
