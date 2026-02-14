@@ -3,6 +3,7 @@
 #pragma warning disable 0618, 1591, 8019
 
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace CacheTests;
@@ -25,4 +26,7 @@ internal static class TestEnumSourceText
         """,
         Encoding.UTF8
     );
+    
+    public static void AddTestEnumDefinition(this IncrementalGeneratorPostInitializationContext context)
+        => context.AddSource("CacheTests.TestEnum.g.cs", SourceText);
 }
