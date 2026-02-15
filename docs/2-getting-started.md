@@ -7,8 +7,7 @@ Add the NuGet package to your source generator project. Since this is an analyze
 ```xml
 <ItemGroup>
     <PackageReference Include="ZCrew.Extensions.CodeAnalysis.CSharp">
-        <OutputItemType>Analyzer</OutputItemType>
-        <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+        <PrivateAssets>analyzers</PrivateAssets>
     </PackageReference>
 </ItemGroup>
 ```

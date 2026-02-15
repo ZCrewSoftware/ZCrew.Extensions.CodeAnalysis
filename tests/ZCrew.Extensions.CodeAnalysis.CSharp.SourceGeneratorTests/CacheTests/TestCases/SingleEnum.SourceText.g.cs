@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CacheTests;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal static class TestEnumSourceText
 {

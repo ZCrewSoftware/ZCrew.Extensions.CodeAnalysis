@@ -32,6 +32,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace MyGenerator;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal static class ServiceLifetimeSourceText
 {

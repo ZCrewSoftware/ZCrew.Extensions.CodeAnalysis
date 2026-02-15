@@ -72,6 +72,15 @@ public static class FormattedStringBuilderExtensions
         }
 
         /// <summary>
+        ///     Appends a <c>EmbeddedAttribute</c> to a class.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        public FormattedStringBuilder AppendEmbeddedAttribute()
+        {
+            return builder.AppendLine("[global::Microsoft.CodeAnalysis.Embedded]");
+        }
+
+        /// <summary>
         ///     Appends a <see langword="typeof"/> expression with opening and closing round brackets.
         /// </summary>
         /// <param name="typeName">The name of the type.</param>

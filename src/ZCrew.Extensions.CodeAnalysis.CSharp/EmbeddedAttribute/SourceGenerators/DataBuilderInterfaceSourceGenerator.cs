@@ -31,6 +31,7 @@ internal static class DataBuilderInterfaceSourceGenerator
             .AppendLine()
             .AppendFileScopedNamespaceDeclaration(group.Namespace)
             .AppendLine()
+            .AppendEmbeddedAttribute()
             .AppendGeneratedAttribute(GeneratorAssemblyName)
             .Append($"internal interface I{group.BaseName}DataBuilder")
             .AppendLine()
@@ -42,8 +43,7 @@ internal static class DataBuilderInterfaceSourceGenerator
 
         // Target ISymbol (where the attribute is located): void ForSymbol(ISymbol symbol)
         generatedSignatures.Add("ForSymbol(ISymbol)");
-        builder.AppendLine()
-            .Append("void ForSymbol(global::Microsoft.CodeAnalysis.ISymbol symbol);");
+        builder.AppendLine().Append("void ForSymbol(global::Microsoft.CodeAnalysis.ISymbol symbol);");
 
         // Constructor parameters: void With{PascalName}(TypedConstant constant)
         foreach (var param in group.UniqueParameters)

@@ -108,6 +108,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace MyNamespace;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("MyGenerator", "0.0.0.0")]
 internal static class FooSourceText
 {
