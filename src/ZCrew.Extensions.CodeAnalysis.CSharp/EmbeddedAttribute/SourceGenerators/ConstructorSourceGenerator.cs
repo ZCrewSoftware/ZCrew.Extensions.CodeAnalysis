@@ -35,6 +35,7 @@ internal static class ConstructorSourceGenerator
             .AppendLine()
             .AppendFileScopedNamespaceDeclaration(group.Namespace)
             .AppendLine()
+            .AppendEmbeddedAttribute()
             .AppendGeneratedAttribute(GeneratorAssemblyName)
             .Append($"internal sealed class {baseName}Constructor")
             .AppendLine()

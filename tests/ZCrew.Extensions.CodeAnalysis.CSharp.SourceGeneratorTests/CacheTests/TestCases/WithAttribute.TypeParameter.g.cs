@@ -4,6 +4,7 @@
 
 namespace AttributeTests;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal sealed class TestAttributeNamedParameter
     : global::ZCrew.Extensions.CodeAnalysis.CSharp.AttributeNamedParameter<ITestAttributeDataBuilder>

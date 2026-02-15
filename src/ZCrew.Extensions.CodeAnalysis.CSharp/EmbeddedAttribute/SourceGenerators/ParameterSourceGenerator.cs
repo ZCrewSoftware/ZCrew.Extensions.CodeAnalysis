@@ -33,6 +33,7 @@ internal static class ParameterSourceGenerator
             .AppendLine()
             .AppendFileScopedNamespaceDeclaration(group.Namespace)
             .AppendLine()
+            .AppendEmbeddedAttribute()
             .AppendGeneratedAttribute(GeneratorAssemblyName)
             .Append($"internal class {baseName}Parameter")
             .AppendLine()

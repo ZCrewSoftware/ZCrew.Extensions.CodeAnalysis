@@ -46,6 +46,7 @@ This produces the following generated files (in the `MyGenerator` namespace).
 
 namespace MyGenerator;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal interface IRegisterDataBuilder
 {
@@ -72,6 +73,7 @@ Each constructor parameter gets a static instance that knows its type and how to
 
 namespace MyGenerator;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal class RegisterParameter
     : global::ZCrew.Extensions.CodeAnalysis.CSharp.AttributeParameter<IRegisterDataBuilder>
@@ -99,6 +101,7 @@ Each generic type parameter gets a static instance that delegates to the builder
 
 namespace MyGenerator;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal sealed class RegisterTypeParameter
     : global::ZCrew.Extensions.CodeAnalysis.CSharp.AttributeTypeParameter<IRegisterDataBuilder>
@@ -127,6 +130,7 @@ Each settable property gets a static instance. The instances are also collected 
 
 namespace MyGenerator;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal sealed class RegisterNamedParameter
     : global::ZCrew.Extensions.CodeAnalysis.CSharp.AttributeNamedParameter<IRegisterDataBuilder>
@@ -159,6 +163,7 @@ The `RegisterConstructor` ties everything together. It references the static ins
 
 namespace MyGenerator;
 
+[global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
 internal sealed class RegisterConstructor
     : global::ZCrew.Extensions.CodeAnalysis.CSharp.AttributeConstructor<IRegisterDataBuilder>

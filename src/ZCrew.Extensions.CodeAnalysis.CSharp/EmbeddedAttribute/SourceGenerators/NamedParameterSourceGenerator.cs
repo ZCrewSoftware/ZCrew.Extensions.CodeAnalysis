@@ -33,6 +33,7 @@ internal static class NamedParameterSourceGenerator
             .AppendLine()
             .AppendFileScopedNamespaceDeclaration(group.Namespace)
             .AppendLine()
+            .AppendEmbeddedAttribute()
             .AppendGeneratedAttribute(GeneratorAssemblyName)
             .Append($"internal sealed class {baseName}NamedParameter")
             .AppendLine()

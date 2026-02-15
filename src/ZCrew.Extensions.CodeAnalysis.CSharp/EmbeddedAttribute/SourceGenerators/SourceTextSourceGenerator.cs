@@ -39,6 +39,7 @@ internal static class SourceTextSourceGenerator
             .AppendLine()
             .AppendFileScopedNamespaceDeclaration(group.Namespace)
             .AppendLine()
+            .AppendEmbeddedAttribute()
             .AppendGeneratedAttribute(GeneratorAssemblyName)
             .Append($"internal static class {group.BaseName}SourceText")
             .AppendLine()
