@@ -4,6 +4,9 @@ using ZCrew.Extensions.CodeAnalysis.CSharp.Collections;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp;
 
+/// <summary>
+///     Extensions for <see cref="IncrementalValueProvider{T}"/> and <see cref="IncrementalValuesProvider{T}"/>.
+/// </summary>
 public static class IncrementalValueProviderExtensions
 {
     /// <summary>

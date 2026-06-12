@@ -1,5 +1,8 @@
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
+/// <summary>
+///     Extensions for <see cref="FormattedStringBuilder"/>.
+/// </summary>
 public static class FormattedStringBuilderExtensions
 {
     extension(FormattedStringBuilder builder)

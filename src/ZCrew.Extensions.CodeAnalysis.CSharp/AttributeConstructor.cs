@@ -38,21 +38,41 @@ public abstract class AttributeConstructor<TAttributeDataBuilder>
 
     private readonly AttributeTypeParameter<TAttributeDataBuilder>[] typeParameters;
 
+    /// <summary>
+    ///     Creates a new constructor with only constructor parameters.
+    /// </summary>
+    /// <param name="parameters">The attribute parameters from the constructor.</param>
     protected AttributeConstructor(AttributeParameter<TAttributeDataBuilder>[] parameters)
         : this([], parameters, []) { }
 
+    /// <summary>
+    ///     Creates a new constructor with constructor parameters and named properties.
+    /// </summary>
+    /// <param name="parameters">The attribute parameters from the constructor.</param>
+    /// <param name="namedParameters">The named attribute properties.</param>
     protected AttributeConstructor(
         AttributeParameter<TAttributeDataBuilder>[] parameters,
         AttributeNamedParameter<TAttributeDataBuilder>[] namedParameters
     )
         : this([], parameters, namedParameters) { }
 
+    /// <summary>
+    ///     Creates a new constructor with type parameters and constructor parameters.
+    /// </summary>
+    /// <param name="typeParameters">The attribute type parameters.</param>
+    /// <param name="parameters">The attribute parameters from the constructor.</param>
     protected AttributeConstructor(
         AttributeTypeParameter<TAttributeDataBuilder>[] typeParameters,
         AttributeParameter<TAttributeDataBuilder>[] parameters
     )
         : this(typeParameters, parameters, []) { }
 
+    /// <summary>
+    ///     Creates a new constructor with all options.
+    /// </summary>
+    /// <param name="typeParameters">The attribute type parameters.</param>
+    /// <param name="parameters">The attribute parameters from the constructor.</param>
+    /// <param name="namedParameters">The named attribute properties.</param>
     protected AttributeConstructor(
         AttributeTypeParameter<TAttributeDataBuilder>[] typeParameters,
         AttributeParameter<TAttributeDataBuilder>[] parameters,
@@ -68,6 +88,11 @@ public abstract class AttributeConstructor<TAttributeDataBuilder>
         }
     }
 
+    /// <summary>
+    ///     Whether this constructor was called by the attribute definition.
+    /// </summary>
+    /// <param name="attributeData">The semantic attribute data.</param>
+    /// <returns><see langword="true"/> if the attribute definition called this constructor.</returns>
     public bool IsCalledBy(AttributeData attributeData)
     {
         var isTypeParameterMatch = MatchesTypeParameters(attributeData);
@@ -85,6 +110,12 @@ public abstract class AttributeConstructor<TAttributeDataBuilder>
         return true;
     }
 
+    /// <summary>
+    ///     Accept the <paramref name="attributeDataBuilder"/> with the <paramref name="attributeData"/> for this
+    ///     constructor. This will apply the constructor's setup to the <paramref name="attributeDataBuilder"/>.
+    /// </summary>
+    /// <param name="attributeDataBuilder">The domain attribute data builder.</param>
+    /// <param name="attributeData">The semantic attribute data.</param>
     public void Accept(TAttributeDataBuilder attributeDataBuilder, AttributeData attributeData)
     {
         // Attribute may have not been loaded fully, this will generate a diagnostic from the compiler anyway
