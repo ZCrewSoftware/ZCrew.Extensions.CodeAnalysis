@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp.Testing/ZCrew.Extensions.CodeAnalysis.CSharp.Testing.csproj" />
+  </ItemGroup>
+</Project>

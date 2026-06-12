@@ -3,13 +3,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.TestHelpers;
+using ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.CacheTests;
 
 public class CacheTests
 {
-    private static readonly TestPath testCases =
-        TestPath.CurrentDirectory / "CacheTests" / "TestCases";
+    private static readonly TestPath testCases = TestPath.CurrentDirectory / "CacheTests" / "TestCases";
 
     [Theory]
     [InlineData("WithAttribute.json")]
@@ -18,11 +18,8 @@ public class CacheTests
     {
         // Arrange
         var testCaseFile = testCases / testDescriptor;
-        var testCase = await TestCase.FromJsonFileAsync(testCaseFile, TestContext.Current.CancellationToken);
-        var test = await EmbeddedAttributeIncrementalGeneratorTest.ForTestCaseAsync(
-            testCase,
-            TestContext.Current.CancellationToken
-        );
+        var testCase = await JsonTestCase.FromJsonFileAsync(testCaseFile, TestContext.Current.CancellationToken);
+        var test = await GeneratorTest.Baseline.BuildAsync(testCase, TestContext.Current.CancellationToken);
         var syntaxTrees = test.TestState.Sources.Select(source => CSharpSyntaxTree.ParseText(source.content)).ToArray();
 
         var sourceGenerator = new EmbeddedAttributeIncrementalGenerator();

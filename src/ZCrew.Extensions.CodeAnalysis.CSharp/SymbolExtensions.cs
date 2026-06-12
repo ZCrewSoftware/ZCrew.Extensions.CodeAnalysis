@@ -3,6 +3,9 @@ using Microsoft.CodeAnalysis;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp;
 
+/// <summary>
+///     Extensions for <see cref="ISymbol"/>.
+/// </summary>
 public static class SymbolExtensions
 {
     private static readonly SymbolDisplayFormat genericTypeFormat = new(
