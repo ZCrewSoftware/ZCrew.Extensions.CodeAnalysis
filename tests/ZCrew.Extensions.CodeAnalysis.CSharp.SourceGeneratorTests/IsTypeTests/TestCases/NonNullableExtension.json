@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "NonNullableExtension.Method.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "NonNullableExtension.Generated.g.cs",
+            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsServiceKeyAttribute.g.cs"
+        }
+    ]
+}

@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
+using ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp;
 
@@ -33,7 +34,8 @@ public static class SymbolExtensions
             | SymbolDisplayParameterOptions.IncludeModifiers
             | SymbolDisplayParameterOptions.IncludeType
             | SymbolDisplayParameterOptions.IncludeName
-            | SymbolDisplayParameterOptions.IncludeDefaultValue
+            | SymbolDisplayParameterOptions.IncludeDefaultValue,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
     );
 
     private static readonly SymbolDisplayFormat classDeclarationFormat = new(
@@ -145,7 +147,7 @@ public static class SymbolExtensions
 
         /// <summary>
         ///     Generates a single-line partial method declaration used to provide an implementation of a partial
-        ///     method.
+        ///     method. This includes nullability modifiers and should be used in <c>#nullable enable</c> code.
         /// </summary>
         /// <returns>The partial method declaration.</returns>
         /// <example>
@@ -153,21 +155,20 @@ public static class SymbolExtensions
         ///         public static partial void Print(global::System.Collections.Generic.IEnumerable values)
         ///     </code>
         /// </example>
-        public string ToPartialMethodDeclaration()
+        internal string ToPartialMethodDeclaration()
         {
             var stringBuilder = new StringBuilder();
 
             // Purposefully do these manually so that the 'partial' modifier can be added.
             // It isn't included in 'ToDisplayString' for some reason.
-            AddMemberAccessibility(symbol, stringBuilder);
-            AddMemberModifiers(symbol, stringBuilder);
+            stringBuilder.AppendMemberAccessibility(symbol).AppendMemberModifiers(symbol);
 
             // Always add partial. If the user has not marked their method as partial, then this will cause an error so
             // they are forced to add it.
             stringBuilder.Append("partial ");
 
             // Add the method name, parameters, constraints, etc.
-            stringBuilder.Append(symbol.ToDisplayString(methodDeclarationPostPartialFormat));
+            stringBuilder.Append(symbol.ToDisplayString());
             return stringBuilder.ToString();
         }
 
@@ -181,7 +182,7 @@ public static class SymbolExtensions
         ///         partial class EnumerableExtensions
         ///     </code>
         /// </example>
-        public string ToPartialClassDeclaration()
+        internal string ToPartialClassDeclaration()
         {
             var stringBuilder = new StringBuilder();
 
@@ -192,64 +193,6 @@ public static class SymbolExtensions
             // Add type name, type parameters, etc.
             stringBuilder.Append(symbol.ToDisplayString(classDeclarationFormat));
             return stringBuilder.ToString();
-        }
-    }
-
-    private static void AddMemberAccessibility(ISymbol symbol, StringBuilder builder)
-    {
-        switch (symbol.DeclaredAccessibility)
-        {
-            case Accessibility.Private:
-                builder.Append("private ");
-                break;
-            case Accessibility.Internal:
-                builder.Append("internal ");
-                break;
-            case Accessibility.ProtectedAndInternal:
-                builder.Append("private protected ");
-                break;
-            case Accessibility.Protected:
-                builder.Append("protected ");
-                break;
-            case Accessibility.ProtectedOrInternal:
-                builder.Append("protected internal ");
-                break;
-            case Accessibility.Public:
-                builder.Append("public ");
-                break;
-        }
-    }
-
-    private static void AddMemberModifiers(ISymbol symbol, StringBuilder builder)
-    {
-        if (symbol.IsStatic)
-        {
-            builder.Append("static ");
-        }
-
-        if (symbol.IsOverride)
-        {
-            builder.Append("override ");
-        }
-
-        if (symbol.IsAbstract)
-        {
-            builder.Append("abstract ");
-        }
-
-        if (symbol.IsSealed)
-        {
-            builder.Append("sealed ");
-        }
-
-        if (symbol.IsExtern)
-        {
-            builder.Append("extern ");
-        }
-
-        if (symbol.IsVirtual)
-        {
-            builder.Append("virtual ");
         }
     }
 }

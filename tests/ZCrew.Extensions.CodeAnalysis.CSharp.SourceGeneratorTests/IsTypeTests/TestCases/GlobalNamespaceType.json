@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "GlobalNamespaceType.Method.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "GlobalNamespaceType.Generated.g.cs",
+            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsGlobalType.g.cs"
+        }
+    ]
+}

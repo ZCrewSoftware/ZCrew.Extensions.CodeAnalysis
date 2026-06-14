@@ -18,6 +18,10 @@ For types that inherit from `System.Attribute`, the library goes further: it gen
 
 Instead of manually inspecting `AttributeData` from Roslyn, you implement a generated `IDataBuilder` interface and let the generated `Constructor` class do the heavy lifting.
 
+### Fast Type Checks
+
+Mark a `partial bool` method with `[IsType<T>]` (or `[IsType(typeof(T))]`) and the library generates a fast pattern-match over a symbol's `Name`/`ContainingNamespace` chain -- or its `SpecialType` for well-known types -- instead of slower `ToDisplayString()` comparisons. The generated check also acts as a null check.
+
 ## Key Utilities
 
 The library also provides two standalone utilities useful in any source generator:
@@ -30,3 +34,4 @@ The library also provides two standalone utilities useful in any source generato
 - [Getting Started](./2-getting-started.md) -- Installation and setup
 - [Emitting Attributes](./3-emitting-attributes.md) -- The full attribute parsing pipeline
 - [Emitting Other Abstractions](./4-emitting-other-abstractions.md) -- Embedding enums, classes, and other types
+- [Fast Type Checks](./6-is-type-checks.md) -- Generating fast Roslyn type checks with `[IsType]`

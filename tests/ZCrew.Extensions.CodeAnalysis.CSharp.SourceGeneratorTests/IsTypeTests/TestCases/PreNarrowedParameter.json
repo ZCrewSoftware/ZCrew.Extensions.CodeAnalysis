@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "PreNarrowedParameter.Method.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "PreNarrowedParameter.Generated.g.cs",
+            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsServiceKeyAttribute.g.cs"
+        }
+    ]
+}

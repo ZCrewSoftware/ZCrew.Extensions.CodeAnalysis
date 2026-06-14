@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "ServiceKeyTypeof.Method.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "ServiceKeyTypeof.Generated.g.cs",
+            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsServiceKeyAttribute.g.cs"
+        }
+    ]
+}

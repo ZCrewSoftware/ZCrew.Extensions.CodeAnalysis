@@ -23,4 +23,23 @@ internal static class GeneratorTest
             .WithDisabledDiagnostics("CS1591")
             // All tests will emit the post-initialization sources (e.g. 'Microsoft.CodeAnalysis.EmbeddedAttribute')
             .WithGeneratorPostInitializationSources();
+
+    /// <summary>
+    ///     The shared baseline for <see cref="IsTypeIncrementalGenerator" /> tests. Mirrors <see cref="Baseline" /> but
+    ///     drives the IsType generator, whose only post-initialization source is the <c>IsTypeAttribute</c> definition.
+    /// </summary>
+    public static readonly SourceGeneratorTestBuilder<IsTypeIncrementalGenerator, DefaultVerifier> IsTypeBaseline =
+        SourceGeneratorTestBuilder<IsTypeIncrementalGenerator>
+            .Create()
+            .WithReferenceAssemblies(ReferenceAssemblies.Net.Net100)
+            // All tests will inevitably use this project
+            .WithAdditionalReferences("Microsoft.CodeAnalysis.dll")
+            .WithAdditionalReferences("Microsoft.CodeAnalysis.CSharp.dll")
+            .WithAdditionalReferences("Microsoft.CodeAnalysis.CSharp.Workspaces.dll")
+            .WithAdditionalReferences("ZCrew.Extensions.CodeAnalysis.CSharp.dll")
+            .WithCompilerDiagnostics(CompilerDiagnostics.All)
+            // Disable the warning on the source files about missing XML comments
+            .WithDisabledDiagnostics("CS1591")
+            // All tests will emit the post-initialization sources (e.g. the 'IsTypeAttribute' definition)
+            .WithGeneratorPostInitializationSources();
 }
