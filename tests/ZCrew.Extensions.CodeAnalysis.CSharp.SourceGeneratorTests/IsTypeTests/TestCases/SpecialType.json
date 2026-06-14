@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "SpecialType.Method.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "SpecialType.Generated.g.cs",
+            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsDisposable.g.cs"
+        }
+    ]
+}

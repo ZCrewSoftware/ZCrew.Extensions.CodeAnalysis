@@ -54,6 +54,20 @@ This generates:
 
 All generated code handles `TypedConstant` and `ITypeSymbol` unwrapping, so your generator can focus on business logic instead of Roslyn plumbing.
 
+### Fast type checks
+
+Mark a `partial bool` method with `[IsType<T>]` (or `[IsType(typeof(T))]`) and the library fills in a fast pattern-match type check over an `ISymbol`:
+
+```csharp
+internal static partial class SymbolChecks
+{
+    [IsType<ServiceAttribute>]
+    public static partial bool IsServiceAttribute(ISymbol? symbol);
+}
+```
+
+The generated body walks the symbol's `Name`/`ContainingNamespace` chain (or uses `SpecialType` for well-known types like `System.IDisposable`) instead of slower `ToDisplayString()` comparisons, and doubles as a null check. See [Fast Type Checks](docs/6-is-type-checks.md) for details.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.

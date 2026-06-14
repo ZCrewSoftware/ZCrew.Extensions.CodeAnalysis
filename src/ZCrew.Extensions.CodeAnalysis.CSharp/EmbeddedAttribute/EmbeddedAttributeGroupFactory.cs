@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Collections;
 using ZCrew.Extensions.CodeAnalysis.CSharp.EmbeddedAttribute.Models;
 
