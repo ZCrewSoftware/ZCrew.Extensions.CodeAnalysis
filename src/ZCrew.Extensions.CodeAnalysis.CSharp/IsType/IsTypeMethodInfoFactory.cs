@@ -137,15 +137,23 @@ internal static class IsTypeMethodInfoFactory
             return null;
         }
 
+        var (typeChain, namespaces) = BuildNamedTypeShape(namedTarget);
+        return new NamedTypeImplementationInfo(parameterName, typeChain, namespaces);
+    }
+
+    private static (EquatableArray<TypeSegment> TypeChain, EquatableArray<string> Namespaces) BuildNamedTypeShape(
+        INamedTypeSymbol named
+    )
+    {
         var typeChain = ImmutableArray.CreateBuilder<TypeSegment>();
-        for (var current = namedTarget; current is not null; current = current.ContainingType)
+        for (var current = named; current is not null; current = current.ContainingType)
         {
-            typeChain.Add(new TypeSegment(current.Name, current.Arity));
+            typeChain.Add(new TypeSegment(current.Name, current.Arity, BuildTypeArguments(current)));
         }
 
         var namespaces = ImmutableArray.CreateBuilder<string>();
         for (
-            var current = namedTarget.ContainingNamespace;
+            var current = named.ContainingNamespace;
             current is { IsGlobalNamespace: false };
             current = current.ContainingNamespace
         )
@@ -153,11 +161,51 @@ internal static class IsTypeMethodInfoFactory
             namespaces.Add(current.Name);
         }
 
-        return new NamedTypeImplementationInfo(
-            parameterName,
-            typeChain.ToEquatableArray(),
-            namespaces.ToEquatableArray()
-        );
+        return (typeChain.ToEquatableArray(), namespaces.ToEquatableArray());
+    }
+
+    private static EquatableArray<ITypeArgument> BuildTypeArguments(INamedTypeSymbol named)
+    {
+        // An unbound generic (e.g. 'typeof(Task<>)') names no concrete arguments -- its "arguments" are placeholders
+        // for the type parameters -- so it places no constraint and matches any instantiation of that arity.
+        if (named.IsUnboundGenericType || named.TypeArguments.Length == 0)
+        {
+            return EquatableArray<ITypeArgument>.Empty;
+        }
+
+        var arguments = ImmutableArray.CreateBuilder<ITypeArgument>(named.TypeArguments.Length);
+        foreach (var argument in named.TypeArguments)
+        {
+            arguments.Add(BuildTypeArgument(argument));
+        }
+
+        return arguments.ToEquatableArray();
+    }
+
+    private static ITypeArgument BuildTypeArgument(ITypeSymbol argument)
+    {
+        // A type parameter -- or the error-typed placeholder an unbound generic exposes for its arguments -- places no
+        // constraint on the argument.
+        if (argument.TypeKind == TypeKind.TypeParameter || argument is IErrorTypeSymbol)
+        {
+            return new TypeParameterArgument();
+        }
+
+        // Special types (e.g. string) are matched directly via their SpecialType.
+        if (argument.SpecialType != SpecialType.None)
+        {
+            return new SpecialTypeArgument(argument.SpecialType.ToString());
+        }
+
+        // Named types recurse so nested generics (e.g. List<string> in Task<List<string>>) are constrained too.
+        if (argument is INamedTypeSymbol namedArgument)
+        {
+            var (typeChain, namespaces) = BuildNamedTypeShape(namedArgument);
+            return new NamedTypeArgument(typeChain, namespaces);
+        }
+
+        // Anything else (arrays, pointers, ...) is not expressible as a closed attribute argument; leave it open.
+        return new TypeParameterArgument();
     }
 
     private static string BuildSignature(IMethodSymbol method, IParameterSymbol parameter, bool addNotNullWhenTrue)

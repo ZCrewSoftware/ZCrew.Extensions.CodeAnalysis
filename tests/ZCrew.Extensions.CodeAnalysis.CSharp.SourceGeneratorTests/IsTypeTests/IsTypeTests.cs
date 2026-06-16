@@ -17,6 +17,9 @@ public class IsTypeTests
     [InlineData("NonNullableExtension.json")]
     [InlineData("GlobalNamespace.json")]
     [InlineData("GlobalNamespaceType.json")]
+    [InlineData("ClosedGeneric.json")]
+    [InlineData("GenericTypeDefinition.json")]
+    [InlineData("NestedGeneric.json")]
     public async Task IsType_WithMarkedPartialMethod_ShouldGenerateTypeCheck(string testDescriptor)
     {
         // Arrange

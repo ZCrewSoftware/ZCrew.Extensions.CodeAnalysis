@@ -1,20 +1,20 @@
 using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Models;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
-namespace ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGenerators;
+namespace ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Emitters;
 
 /// <summary>
 ///     Appends the <c>is</c> pattern for a <see cref="SpecialTypeImplementationInfo"/> -- a direct match on a
 ///     well-known <see cref="Microsoft.CodeAnalysis.SpecialType"/>.
 /// </summary>
-internal static class SpecialTypeImplementationSourceGenerator
+internal static class SpecialTypeImplementationEmitters
 {
     /// <summary>
     ///     Appends the variant <c>is</c> pattern into the shared <paramref name="builder"/>.
     /// </summary>
     /// <param name="builder">The builder accumulating the generated method body.</param>
     /// <param name="info">The special-type check to emit.</param>
-    public static void Append(FormattedStringBuilder builder, SpecialTypeImplementationInfo info)
+    public static void Emit(FormattedStringBuilder builder, SpecialTypeImplementationInfo info)
     {
         // Narrow to ITypeSymbol so SpecialType is available (harmless when the parameter already is one).
         builder.Append(info.ParameterName).Append(" is global::Microsoft.CodeAnalysis.ITypeSymbol");

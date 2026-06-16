@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using ZCrew.Extensions.CodeAnalysis.CSharp.IsType;
-using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGenerators;
+using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Emitters;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp;
 
@@ -38,14 +38,8 @@ internal sealed class IsTypeIncrementalGenerator : IIncrementalGenerator
             .Where(static info => info.HasValue)
             .Select(static (info, _) => info!.Value);
 
-        context.RegisterSourceOutput(
-            genericMethods,
-            static (context, info) => IsTypeMethodSourceGenerator.Generate(context, info)
-        );
-        context.RegisterSourceOutput(
-            typeofMethods,
-            static (context, info) => IsTypeMethodSourceGenerator.Generate(context, info)
-        );
+        context.RegisterSourceOutput(genericMethods, static (context, info) => IsTypeMethodEmitter.Emit(context, info));
+        context.RegisterSourceOutput(typeofMethods, static (context, info) => IsTypeMethodEmitter.Emit(context, info));
     }
 
     private static void EmitAbstractions(IncrementalGeneratorPostInitializationContext context)

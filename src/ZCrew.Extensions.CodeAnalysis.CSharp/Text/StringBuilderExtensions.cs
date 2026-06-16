@@ -3,10 +3,19 @@ using Microsoft.CodeAnalysis;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
+/// <summary>
+///     Extensions for <see cref="StringBuilder"/>.
+/// </summary>
 public static class StringBuilderExtensions
 {
     extension(StringBuilder builder)
     {
+        /// <summary>
+        ///     Appends the member accessibility to this <see cref="StringBuilder"/>. This ends with a trailing space
+        ///     unless the accessibility is blank or unknown.
+        /// </summary>
+        /// <param name="symbol">The symbol.</param>
+        /// <returns>This same <see cref="String"/> for chaining calls.</returns>
         public StringBuilder AppendMemberAccessibility(ISymbol symbol)
         {
             return symbol.DeclaredAccessibility switch
@@ -21,6 +30,12 @@ public static class StringBuilderExtensions
             };
         }
 
+        /// <summary>
+        ///     Appends the member modifiers to this <see cref="StringBuilder"/>. This ends with a trailing space unless
+        ///     there were no modifiers.
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
         public StringBuilder AppendMemberModifiers(ISymbol symbol)
         {
             if (symbol.IsStatic)

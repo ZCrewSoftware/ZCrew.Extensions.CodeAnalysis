@@ -1,4 +1,4 @@
-using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGenerators;
+using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Emitters;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Models;
@@ -15,9 +15,9 @@ internal readonly record struct SpecialTypeImplementationInfo(string ParameterNa
     : IIsTypeImplementationInfo
 {
     /// <inheritdoc/>
-    public FormattedStringBuilder AppendImplementation(FormattedStringBuilder builder)
+    public FormattedStringBuilder Emit(FormattedStringBuilder builder)
     {
-        SpecialTypeImplementationSourceGenerator.Append(builder, this);
+        SpecialTypeImplementationEmitters.Emit(builder, this);
         return builder;
     }
 }

@@ -13,6 +13,7 @@
     <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp/ZCrew.Extensions.CodeAnalysis.CSharp.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.IntegrationTests/ZCrew.Extensions.CodeAnalysis.CSharp.IntegrationTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests/ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests/ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.UnitTests/ZCrew.Extensions.CodeAnalysis.CSharp.UnitTests.csproj" />
