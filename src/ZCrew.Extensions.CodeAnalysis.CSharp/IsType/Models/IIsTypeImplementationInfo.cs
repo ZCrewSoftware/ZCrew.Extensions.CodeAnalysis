@@ -10,9 +10,9 @@ namespace ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Models;
 internal interface IIsTypeImplementationInfo
 {
     /// <summary>
-    ///     Append the expression bodied implementation for this check.
+    ///     Emit the expression bodied implementation for this check.
     /// </summary>
     /// <param name="builder">The output to emit to.</param>
     /// <returns>The same <see cref="FormattedStringBuilder"/> for chaining calls.</returns>
-    FormattedStringBuilder AppendImplementation(FormattedStringBuilder builder);
+    FormattedStringBuilder Emit(FormattedStringBuilder builder);
 }

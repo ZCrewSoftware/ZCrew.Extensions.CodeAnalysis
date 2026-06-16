@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "NestedGeneric.Method.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "NestedGeneric.Generated.g.cs",
+            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsTask.g.cs"
+        }
+    ]
+}

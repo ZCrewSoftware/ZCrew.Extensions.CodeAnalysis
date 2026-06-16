@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "GenericTypeDefinition.Method.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "GenericTypeDefinition.Generated.g.cs",
+            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsTask.g.cs"
+        }
+    ]
+}

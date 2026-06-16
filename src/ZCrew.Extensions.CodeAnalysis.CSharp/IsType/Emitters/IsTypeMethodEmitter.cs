@@ -4,13 +4,13 @@ using Microsoft.CodeAnalysis.Text;
 using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Models;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
-namespace ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGenerators;
+namespace ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Emitters;
 
 /// <summary>
 ///     Emits the implementing partial method for an <see cref="IsTypeMethodInfo"/>: the shared scaffolding plus the
 ///     composed implementation's <c>is</c> pattern.
 /// </summary>
-internal static class IsTypeMethodSourceGenerator
+internal static class IsTypeMethodEmitter
 {
     /// <summary>
     ///     Emits the implementing partial method: the shared scaffolding plus the composed implementation's
@@ -18,7 +18,7 @@ internal static class IsTypeMethodSourceGenerator
     /// </summary>
     /// <param name="context">The source production context.</param>
     /// <param name="info">The method metadata to emit.</param>
-    public static void Generate(SourceProductionContext context, IsTypeMethodInfo info)
+    public static void Emit(SourceProductionContext context, IsTypeMethodInfo info)
     {
         var builder = new FormattedStringBuilder();
 
@@ -42,7 +42,7 @@ internal static class IsTypeMethodSourceGenerator
 
         // The implementing method as an expression body; the implementation supplies everything after the " =>".
         builder.Append(info.MethodSignature).Append(" =>").Indent().AppendLine();
-        info.Implementation.AppendImplementation(builder);
+        info.Implementation.Emit(builder);
         builder.Unindent();
 
         // Close the containing type(s).

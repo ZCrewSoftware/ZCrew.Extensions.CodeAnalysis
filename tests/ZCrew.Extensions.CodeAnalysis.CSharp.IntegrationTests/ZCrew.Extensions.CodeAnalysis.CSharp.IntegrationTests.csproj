@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <!-- Reference the generator as an analyzer so it emits the IsType implementations into this project. -->
+    <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp/ZCrew.Extensions.CodeAnalysis.CSharp.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The generated checks reference Microsoft.CodeAnalysis symbol types; the tests also build a compilation to
+         resolve real symbols (e.g. Task<string>) to assert the generated checks against. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+</Project>

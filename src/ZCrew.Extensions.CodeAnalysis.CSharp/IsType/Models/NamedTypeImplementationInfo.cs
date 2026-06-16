@@ -1,5 +1,5 @@
 using ZCrew.Extensions.CodeAnalysis.CSharp.Collections;
-using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGenerators;
+using ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Emitters;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.IsType.Models;
@@ -18,9 +18,9 @@ internal readonly record struct NamedTypeImplementationInfo(
 ) : IIsTypeImplementationInfo
 {
     /// <inheritdoc/>
-    public FormattedStringBuilder AppendImplementation(FormattedStringBuilder builder)
+    public FormattedStringBuilder Emit(FormattedStringBuilder builder)
     {
-        NamedTypeImplementationSourceGenerator.Append(builder, this);
+        NamedTypeImplementationEmitter.Emit(builder, this);
         return builder;
     }
 }
