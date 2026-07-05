@@ -189,4 +189,276 @@ public class FormattedStringBuilderExtensionsTests
             """;
         Assert.Equal(expectedString, formattedStringBuilder.ToString());
     }
+
+    [Fact]
+    public void AppendJoined_WithListAndStringSeparator_ShouldJoinAllElements()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, ", ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("static, extern, new", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithListAndCharSeparator_ShouldJoinAllElements()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, ' ', (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("static extern new", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithSpanAndStringSeparator_ShouldJoinAllElements()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        ReadOnlySpan<string> items = ["static", "extern", "new"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, ", ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("static, extern, new", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithSpanAndCharSeparator_ShouldJoinAllElements()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        ReadOnlySpan<string> items = ["static", "extern", "new"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, ' ', (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("static extern new", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithListRangeAndStringSeparator_ShouldJoinOnlySubrange()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, 1, 5, " ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("extern new virtual abstract sealed", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithListRangeAndCharSeparator_ShouldJoinOnlySubrange()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, 1, 5, ' ', (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("extern new virtual abstract sealed", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithSpanRangeAndStringSeparator_ShouldJoinOnlySubrange()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        ReadOnlySpan<string> items = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, 1, 5, " ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("extern new virtual abstract sealed", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithSpanRangeAndCharSeparator_ShouldJoinOnlySubrange()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        ReadOnlySpan<string> items = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, 1, 5, ' ', (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("extern new virtual abstract sealed", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithEmptyList_ShouldAppendNothing()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = [];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, ", ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Empty(formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithSingleElement_ShouldNotAppendSeparator()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, ", ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("static", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithZeroCount_ShouldAppendNothing()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, 1, 0, ", ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Empty(formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithRangeEndingAtLastElement_ShouldJoinToEnd()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, 5, 2, " ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Equal("sealed override", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WithCustomAppendElement_ShouldRenderEachElementViaCallback()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new"];
+
+        // Act
+        formattedStringBuilder.AppendJoined(items, " ", (b, m) => b.Append(m.ToUpperInvariant()));
+
+        // Assert
+        Assert.Equal("STATIC EXTERN NEW", formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendJoined_WhenCalled_ShouldReturnSameBuilder()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern"];
+
+        // Act
+        var result = formattedStringBuilder.AppendJoined(items, " ", (b, m) => b.Append(m));
+
+        // Assert
+        Assert.Same(formattedStringBuilder, result);
+    }
+
+    [Fact]
+    public void AppendJoined_WithNegativeStartIndex_ShouldThrowForStartIndex()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new"];
+
+        // Act
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            formattedStringBuilder.AppendJoined(items, -1, 1, " ", (b, m) => b.Append(m))
+        );
+
+        // Assert
+        Assert.Equal("startIndex", exception.ParamName);
+    }
+
+    [Fact]
+    public void AppendJoined_WithNegativeCount_ShouldThrowForCount()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new"];
+
+        // Act
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            formattedStringBuilder.AppendJoined(items, 0, -1, " ", (b, m) => b.Append(m))
+        );
+
+        // Assert
+        Assert.Equal("count", exception.ParamName);
+    }
+
+    [Fact]
+    public void AppendJoined_WithRangeExceedingCount_ShouldThrowForCount()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        List<string> items = ["static", "extern", "new"];
+
+        // Act
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            formattedStringBuilder.AppendJoined(items, 2, 5, " ", (b, m) => b.Append(m))
+        );
+
+        // Assert
+        Assert.Equal("count", exception.ParamName);
+    }
+
+    [Fact]
+    public void AppendJoined_WithSpanAndNegativeStartIndex_ShouldThrowForStartIndex()
+    {
+        // Act
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            ReadOnlySpan<string> items = ["static", "extern", "new"];
+            new FormattedStringBuilder().AppendJoined(items, -1, 1, " ", (b, m) => b.Append(m));
+        });
+
+        // Assert
+        Assert.Equal("startIndex", exception.ParamName);
+    }
+
+    [Fact]
+    public void AppendJoined_WithSpanAndRangeExceedingLength_ShouldThrowForCount()
+    {
+        // Act
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            ReadOnlySpan<string> items = ["static", "extern", "new"];
+            new FormattedStringBuilder().AppendJoined(items, 2, 5, " ", (b, m) => b.Append(m));
+        });
+
+        // Assert
+        Assert.Equal("count", exception.ParamName);
+    }
 }

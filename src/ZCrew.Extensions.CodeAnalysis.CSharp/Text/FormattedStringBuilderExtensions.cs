@@ -147,9 +147,9 @@ public static class FormattedStringBuilderExtensions
         /// <code>
         ///     private const string Comment =
         ///         """
-        ///         /// <summary>
+        ///         /// &lt;summary&gt;
         ///         /// Generated method for registering a component.
-        ///         /// </summary>
+        ///         /// &lt;/summary&gt;
         ///         """;
         ///     private string comment = new FormattedStringBuilder()
         ///         .Append('{')
@@ -159,14 +159,15 @@ public static class FormattedStringBuilderExtensions
         ///         .Append("public void Register() {}")
         ///         .Unindent()
         ///         .AppendLine()
-        ///         .Append('}');
+        ///         .Append('}')
+        ///         .ToString();
         /// </code>
         /// Would generate:
         /// <code>
         ///     {
-        ///         /// <summary>
+        ///         /// &lt;summary&gt;
         ///         /// Generated method for registering a component.
-        ///         /// </summary>
+        ///         /// &lt;/summary&gt;
         ///         public void Register() {}
         ///     }
         /// </code>
@@ -184,6 +185,258 @@ public static class FormattedStringBuilderExtensions
             }
 
             return builder;
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, " ", (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"static extern new virtual abstract sealed override"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            IReadOnlyList<T> items,
+            string separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            return builder.AppendJoined(items, 0, items.Count, separator, appendElement);
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, 1, 5, " ", (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"extern new virtual abstract sealed"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            IReadOnlyList<T> items,
+            int startIndex,
+            int count,
+            string separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            ValidateRange(startIndex, count, items.Count);
+            for (var i = 0; i < count; i++)
+            {
+                if (i != 0)
+                {
+                    builder.Append(separator);
+                }
+
+                appendElement(builder, items[startIndex + i]);
+            }
+
+            return builder;
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, ' ', (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"static extern new virtual abstract sealed override"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            IReadOnlyList<T> items,
+            char separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            return builder.AppendJoined(items, 0, items.Count, separator, appendElement);
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, 1, 5, ' ', (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"extern new virtual abstract sealed"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            IReadOnlyList<T> items,
+            int startIndex,
+            int count,
+            char separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            ValidateRange(startIndex, count, items.Count);
+            for (var i = 0; i < count; i++)
+            {
+                if (i != 0)
+                {
+                    builder.Append(separator);
+                }
+
+                appendElement(builder, items[startIndex + i]);
+            }
+
+            return builder;
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, " ", (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"static extern new virtual abstract sealed override"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            ReadOnlySpan<T> items,
+            string separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            return builder.AppendJoined(items, 0, items.Length, separator, appendElement);
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, 1, 5, " ", (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"extern new virtual abstract sealed"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            ReadOnlySpan<T> items,
+            int startIndex,
+            int count,
+            string separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            ValidateRange(startIndex, count, items.Length);
+            for (var i = 0; i < count; i++)
+            {
+                if (i != 0)
+                {
+                    builder.Append(separator);
+                }
+
+                appendElement(builder, items[startIndex + i]);
+            }
+
+            return builder;
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, ' ', (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"static extern new virtual abstract sealed override"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            ReadOnlySpan<T> items,
+            char separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            return builder.AppendJoined(items, 0, items.Length, separator, appendElement);
+        }
+
+        /// <summary>
+        ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
+        ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
+        /// </summary>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private readonly string[] modifiers = ["static", "extern", "new", "virtual", "abstract", "sealed", "override"]
+        ///     private string allModifiers = new FormattedStringBuilder()
+        ///         .AppendJoined(modifiers, 1, 5, ' ', (b, i) => b.Append(i))
+        ///         .ToString();
+        /// </code>
+        /// Would produce <c>"extern new virtual abstract sealed"</c>.
+        /// </example>
+        public FormattedStringBuilder AppendJoined<T>(
+            ReadOnlySpan<T> items,
+            int startIndex,
+            int count,
+            char separator,
+            Action<FormattedStringBuilder, T> appendElement
+        )
+        {
+            ValidateRange(startIndex, count, items.Length);
+            for (var i = 0; i < count; i++)
+            {
+                if (i != 0)
+                {
+                    builder.Append(separator);
+                }
+
+                appendElement(builder, items[startIndex + i]);
+            }
+
+            return builder;
+        }
+    }
+
+    private static void ValidateRange(int startIndex, int count, int length)
+    {
+        if (startIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startIndex), startIndex, "Start must be non-negative");
+        }
+        if (count < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), count, "Count must be non-negative");
+        }
+        if (length < count + startIndex)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), count + startIndex, $"There are only {length} items");
         }
     }
 }
