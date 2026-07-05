@@ -18,4 +18,10 @@ public class TestGeneratedFile
     ///     It is mapped to the full generated file path the test verifies against.
     /// </summary>
     public string GeneratedFileName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     The diagnostics the test expects to be reported in this generated file, located within its expected content
+    ///     by <see cref="TestExpectedDiagnostic.Snippet" /> or by an explicit line and column.
+    /// </summary>
+    public List<TestExpectedDiagnostic> ExpectedDiagnostics { get; set; } = [];
 }

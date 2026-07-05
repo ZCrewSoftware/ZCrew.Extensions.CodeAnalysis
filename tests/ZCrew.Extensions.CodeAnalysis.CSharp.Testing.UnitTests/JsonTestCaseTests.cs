@@ -1,5 +1,5 @@
 using System.Text.Json;
-using ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests.TestDoubles;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests;
@@ -13,6 +13,96 @@ public class JsonTestCaseTests
             "GeneratedFiles": [{ "SourceFileName": "Expected.g.cs", "GeneratedFileName": "Source.g.cs" }]
         }
         """;
+
+    private const string DiagnosticsJson = """
+        {
+            "SourceFiles": [
+                {
+                    "SourceFileName": "Source.cs",
+                    "ExpectedDiagnostics": [
+                        { "Id": "CS0246", "Snippet": "CreateService<T>(" }
+                    ]
+                }
+            ],
+            "GeneratedFiles": [
+                {
+                    "SourceFileName": "Expected.g.cs",
+                    "GeneratedFileName": "Source.g.cs",
+                    "ExpectedDiagnostics": [
+                        { "Id": "ZC1001", "Severity": "Warning", "Line": 10, "Column": 5, "Message": "not supported" }
+                    ]
+                }
+            ],
+            "ExpectedDiagnostics": [
+                { "Id": "CS5001" }
+            ]
+        }
+        """;
+
+    [Fact]
+    public void FromJsonFile_ShouldParseExpectedDiagnostics()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var file = temp.WriteFile("case.json", DiagnosticsJson);
+
+        // Act
+        var testCase = JsonTestCase.FromJsonFile(file);
+
+        // Assert — snippet diagnostic nested under the source file.
+        var snippetDiagnostic = Assert.Single(Assert.Single(testCase.SourceFiles).ExpectedDiagnostics);
+        Assert.Equal("CS0246", snippetDiagnostic.Id);
+        Assert.Equal("CreateService<T>(", snippetDiagnostic.Snippet);
+        // Severity defaults to Error when omitted; location fields stay null in snippet form.
+        Assert.Equal(DiagnosticSeverity.Error, snippetDiagnostic.Severity);
+        Assert.Null(snippetDiagnostic.Line);
+        Assert.Null(snippetDiagnostic.Column);
+        Assert.Null(snippetDiagnostic.Message);
+
+        // Explicit line/column diagnostic nested under the generated file.
+        var explicitDiagnostic = Assert.Single(Assert.Single(testCase.GeneratedFiles).ExpectedDiagnostics);
+        Assert.Equal("ZC1001", explicitDiagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Warning, explicitDiagnostic.Severity);
+        Assert.Equal(10, explicitDiagnostic.Line);
+        Assert.Equal(5, explicitDiagnostic.Column);
+        Assert.Equal("not supported", explicitDiagnostic.Message);
+
+        // Locationless diagnostic at the top level.
+        var locationlessDiagnostic = Assert.Single(testCase.ExpectedDiagnostics);
+        Assert.Equal("CS5001", locationlessDiagnostic.Id);
+        Assert.Null(locationlessDiagnostic.Snippet);
+        Assert.Null(locationlessDiagnostic.Line);
+    }
+
+    [Fact]
+    public void FromJsonFile_WithOmittedExpectedDiagnostics_ShouldDefaultToEmpty()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var file = temp.WriteFile("case.json", ValidJson);
+
+        // Act
+        var testCase = JsonTestCase.FromJsonFile(file);
+
+        // Assert — empty at the top level and on each file entry.
+        Assert.Empty(testCase.ExpectedDiagnostics);
+        Assert.Empty(Assert.Single(testCase.SourceFiles).ExpectedDiagnostics);
+        Assert.Empty(Assert.Single(testCase.GeneratedFiles).ExpectedDiagnostics);
+    }
+
+    [Fact]
+    public void FromJsonFile_ShouldNotLeakExpectedDiagnosticsIntoProperties()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var file = temp.WriteFile("case.json", DiagnosticsJson);
+
+        // Act
+        var testCase = JsonTestCase.FromJsonFile(file);
+
+        // Assert — a typed property binds the key, so it must not fall through to the extension-data bag.
+        Assert.DoesNotContain("ExpectedDiagnostics", ((ITestCase)testCase).Properties.Keys);
+    }
 
     [Fact]
     public void FromJsonFile_ShouldParseSourceAndGeneratedFiles()

@@ -26,6 +26,10 @@ public class JsonTestCase : ITestCase
     [JsonInclude]
     public IReadOnlyList<TestGeneratedFile> GeneratedFiles { get; private set; } = [];
 
+    /// <inheritdoc />
+    [JsonInclude]
+    public IReadOnlyList<TestExpectedDiagnostic> ExpectedDiagnostics { get; private set; } = [];
+
     /// <inheritdoc cref="ITestCase.Properties"/>
     [JsonInclude, JsonExtensionData]
     public Dictionary<string, object> Properties { get; private set; } = [];

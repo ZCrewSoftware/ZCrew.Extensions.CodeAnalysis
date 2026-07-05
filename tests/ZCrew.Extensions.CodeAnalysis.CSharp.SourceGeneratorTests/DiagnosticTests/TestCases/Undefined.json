@@ -1,0 +1,14 @@
+{
+    "Description": "Asserts an expected compiler diagnostic located by a code snippet in a source file.",
+    "SourceFiles": [
+        {
+            "SourceFileName": "Undefined.Source.cs",
+            "ExpectedDiagnostics": [
+                {
+                    "Id": "CS0246",
+                    "Snippet": "Undefined"
+                }
+            ]
+        }
+    ]
+}

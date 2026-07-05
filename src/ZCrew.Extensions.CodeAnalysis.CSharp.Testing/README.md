@@ -18,7 +18,7 @@ A test case is three kinds of file in a `TestCases/` folder next to your test cl
 
 - **Input sources** (e.g. `MyCase.Attribute.cs`) compiled as input to the generator.
 - **Expected generated files** (e.g. `MyCase.SourceText.g.cs`) the output to verify against.
-- **A JSON descriptor** (`MyCase.json`) maps the inputs and expected outputs (diagnostics coming soon(tm)):
+- **A JSON descriptor** (`MyCase.json`) maps the inputs, expected outputs, and any expected diagnostics:
 
 ```json
 {
@@ -36,6 +36,48 @@ A test case is three kinds of file in a `TestCases/` folder next to your test cl
 
 `SourceFileName` is the file on disk; `GeneratedFileName` is the **hint name** your generator passes to
 `context.AddSource(hintName, ...)`.
+
+## Expecting diagnostics
+
+Declare expected diagnostics where they occur:
+
+- On a **source file** or **generated file** entry, an `ExpectedDiagnostics` array asserts diagnostics located in
+  that file. Give each a location by `Snippet` (the start of its single occurrence in that file) or by an explicit
+  1-based `Line`/`Column`.
+- At the **top level**, an `ExpectedDiagnostics` array asserts diagnostics with no location (`Location.None`) — for
+  example `CS5001` or a compilation-level analyzer diagnostic.
+
+Each entry has an `Id`, an optional `Severity` (defaults to `Error`), and an optional `Message` to match exactly.
+
+```json
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "MyCase.Attribute.cs",
+            "ExpectedDiagnostics": [
+                { "Id": "CS0246", "Snippet": "CreateService<T>(" },
+                { "Id": "CS0246", "Line": 10, "Column": 17 }
+            ]
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "MyCase.SourceText.g.cs",
+            "GeneratedFileName": "MyNamespace.MyTypeSourceText.g.cs",
+            "ExpectedDiagnostics": [
+                { "Id": "CS0219", "Severity": "Warning", "Snippet": "unused" }
+            ]
+        }
+    ],
+    "ExpectedDiagnostics": [
+        { "Id": "CS5001" }
+    ]
+}
+```
+
+Only the diagnostic's **start** is asserted, so the reported span may extend past the located snippet. A snippet
+that is missing or appears more than once in its file fails the test with a helpful message — use a more specific
+snippet or an explicit `Line`/`Column`.
 
 ## Wiring the test
 
