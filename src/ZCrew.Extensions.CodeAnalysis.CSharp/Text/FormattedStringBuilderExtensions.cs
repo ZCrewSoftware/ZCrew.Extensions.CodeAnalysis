@@ -188,6 +188,54 @@ public static class FormattedStringBuilderExtensions
         }
 
         /// <summary>
+        ///     Appends a C# block with a <c>{</c>, an indented <paramref name="body"/>, and a <c>}</c> on the same
+        ///     level as the opening curly bracket.
+        /// </summary>
+        /// <param name="body">The body contents.</param>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private string comment = new FormattedStringBuilder()
+        ///         .AppendLine("if (value > 5)")
+        ///         .AppendBlock(block => block
+        ///             .AppendLine("value = value * 2 + 1;")
+        ///          )
+        ///         .AppendLine()
+        ///         .AppendLine("else")
+        ///         .AppendBlock(block => block
+        ///             .AppendLine("value += 5;")
+        ///          )
+        ///         .ToString();
+        /// </code>
+        /// Would generate:
+        /// <code>
+        ///     if (value > 5)
+        ///     {
+        ///         value = value * 2 + 1;
+        ///     }
+        ///     else
+        ///     {
+        ///         value += 5;
+        ///     }
+        /// </code>
+        /// </example>
+        /// <remarks>
+        ///     Consider nesting these as you'd nest regular blocks.
+        /// </remarks>
+        public FormattedStringBuilder AppendBlock(Action<FormattedStringBuilder> body)
+        {
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
+
+            builder.Append('{').Indent().AppendLine();
+            body(builder);
+            // User may have finished with an AppendLine(), so trim it
+            return builder.TrimEnd().Unindent().AppendLine().Append('}');
+        }
+
+        /// <summary>
         ///     Appends the <paramref name="items"/>, writing <paramref name="separator"/> between them. Each element can be
         ///     rendered by <paramref name="appendElement"/>, which receives the builder and the item.
         /// </summary>
@@ -420,6 +468,19 @@ public static class FormattedStringBuilderExtensions
                 appendElement(builder, items[startIndex + i]);
             }
 
+            return builder;
+        }
+
+        // TODO: consider elevating this up to a public API
+        private FormattedStringBuilder TrimEnd()
+        {
+            var length = builder.Length;
+            while (length > 0 && char.IsWhiteSpace(builder[length - 1]))
+            {
+                length--;
+            }
+
+            builder.Length = length;
             return builder;
         }
     }

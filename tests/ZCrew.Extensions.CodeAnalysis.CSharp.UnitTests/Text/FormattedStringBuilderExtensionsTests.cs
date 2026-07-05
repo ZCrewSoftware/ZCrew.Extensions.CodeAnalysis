@@ -461,4 +461,201 @@ public class FormattedStringBuilderExtensionsTests
         // Assert
         Assert.Equal("count", exception.ParamName);
     }
+
+    [Fact]
+    public void AppendBlock_WithSingleStatement_ShouldWrapBodyInBraces()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder
+            .AppendLine("if (value > 5)")
+            .AppendBlock(block => block.AppendLine("value = value * 2 + 1;"));
+
+        // Assert
+        var expectedString = """
+            if (value > 5)
+            {
+                value = value * 2 + 1;
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WhenBodyEndsWithAppendLine_ShouldNotEmitBlankLineBeforeClosingBrace()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder.AppendLine("void M()").AppendBlock(block => block.AppendLine("Body();"));
+
+        // Assert
+        var expectedString = """
+            void M()
+            {
+                Body();
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WhenBodyEndsWithoutNewline_ShouldStillCloseOnItsOwnLine()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder.AppendLine("void M()").AppendBlock(block => block.Append("Body();"));
+
+        // Assert
+        var expectedString = """
+            void M()
+            {
+                Body();
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WithMultipleStatements_ShouldIndentEachStatement()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder
+            .AppendLine("int Add()")
+            .AppendBlock(block => block.AppendLine("var x = 1;").AppendLine("var y = 2;").AppendLine("return x + y;"));
+
+        // Assert
+        var expectedString = """
+            int Add()
+            {
+                var x = 1;
+                var y = 2;
+                return x + y;
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WhenNested_ShouldIndentEachLevel()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder
+            .AppendLine("void M()")
+            .AppendBlock(block => block.AppendLine("if (x)").AppendBlock(inner => inner.AppendLine("y();")));
+
+        // Assert
+        var expectedString = """
+            void M()
+            {
+                if (x)
+                {
+                    y();
+                }
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WithEmptyBody_ShouldEmitBracesOnSeparateLines()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder.AppendLine("void M()").AppendBlock(block => { });
+
+        // Assert
+        var expectedString = """
+            void M()
+            {
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WhenBodyLeavesTrailingBlankLine_ShouldTrimBeforeClosingBrace()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder.AppendLine("void M()").AppendBlock(block => block.AppendLine("Body();").AppendLine());
+
+        // Assert
+        var expectedString = """
+            void M()
+            {
+                Body();
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WhenChainedAsIfElse_ShouldMatchRegularBlockLayout()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder
+            .AppendLine("if (value > 5)")
+            .AppendBlock(block => block.AppendLine("value = value * 2 + 1;"))
+            .AppendLine()
+            .AppendLine("else")
+            .AppendBlock(block => block.AppendLine("value += 5;"));
+
+        // Assert
+        var expectedString = """
+            if (value > 5)
+            {
+                value = value * 2 + 1;
+            }
+            else
+            {
+                value += 5;
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendBlock_WhenCalled_ShouldReturnSameBuilder()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        var result = formattedStringBuilder.AppendBlock(block => block.Append("Body();"));
+
+        // Assert
+        Assert.Same(formattedStringBuilder, result);
+    }
+
+    [Fact]
+    public void AppendBlock_WithNullBody_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        var exception = Assert.Throws<ArgumentNullException>(() => formattedStringBuilder.AppendBlock(null!));
+
+        // Assert
+        Assert.Equal("body", exception.ParamName);
+    }
 }
