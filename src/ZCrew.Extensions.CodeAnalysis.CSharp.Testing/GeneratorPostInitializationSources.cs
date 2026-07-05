@@ -13,7 +13,7 @@ internal static class GeneratorPostInitializationSources<TGenerator>
     where TGenerator : new()
 {
     // ReSharper disable once StaticMemberInGenericType - this is meant to be scoped per generator type
-    private static readonly Lazy<ImmutableArray<(string HintName, SourceText Content)>> lazySources = new(
+    private static readonly Lazy<ImmutableArray<(string HintName, SourceText Content)>> LazySources = new(
         Capture,
         LazyThreadSafetyMode.ExecutionAndPublication
     );
@@ -22,7 +22,7 @@ internal static class GeneratorPostInitializationSources<TGenerator>
     ///     The sources a generator emits using <see cref="IncrementalGeneratorPostInitializationContext"/>. These are
     ///     typically static (unchanged from run-to-run) and can be cached here for most generators.
     /// </summary>
-    public static ImmutableArray<(string HintName, SourceText Content)> Sources => lazySources.Value;
+    public static ImmutableArray<(string HintName, SourceText Content)> Sources => LazySources.Value;
 
     private static ImmutableArray<(string HintName, SourceText Content)> Capture()
     {
@@ -42,6 +42,6 @@ internal static class GeneratorPostInitializationSources<TGenerator>
         );
 
         var runResult = CSharpGeneratorDriver.Create(generator).RunGenerators(compilation).GetRunResult();
-        return runResult.Results[0].GeneratedSources.Select(s => (s.HintName, s.SourceText)).ToImmutableArray();
+        return [.. runResult.Results[0].GeneratedSources.Select(s => (s.HintName, s.SourceText))];
     }
 }

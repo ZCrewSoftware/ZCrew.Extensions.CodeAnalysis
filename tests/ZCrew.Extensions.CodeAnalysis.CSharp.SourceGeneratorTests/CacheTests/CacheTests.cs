@@ -9,7 +9,7 @@ namespace ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.CacheTests;
 
 public class CacheTests
 {
-    private static readonly TestPath testCases = TestPath.CurrentDirectory / "CacheTests" / "TestCases";
+    private static readonly TestPath TestCases = TestPath.ForCaller() / "TestCases";
 
     [Theory]
     [InlineData("WithAttribute.json")]
@@ -17,9 +17,13 @@ public class CacheTests
     public async Task EmbeddedAttribute_WithMultipleBuilds_ShouldCacheIncrementalValues(string testDescriptor)
     {
         // Arrange
-        var testCaseFile = testCases / testDescriptor;
+        var testCaseFile = TestCases / testDescriptor;
         var testCase = await JsonTestCase.FromJsonFileAsync(testCaseFile, TestContext.Current.CancellationToken);
-        var test = await GeneratorTest.Baseline.BuildAsync(testCase, TestContext.Current.CancellationToken);
+        // This test only uses the loaded sources for its caching assertions and never verifies generated output, so
+        // opt out of expected-source updates to avoid a needless extra generator run and file writes.
+        var test = await GeneratorTest
+            .Baseline.WithExpectedSourceUpdates(false)
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
         var syntaxTrees = test.TestState.Sources.Select(source => CSharpSyntaxTree.ParseText(source.content)).ToArray();
 
         var sourceGenerator = new EmbeddedAttributeIncrementalGenerator();

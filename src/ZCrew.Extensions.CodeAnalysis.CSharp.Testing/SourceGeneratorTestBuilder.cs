@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -85,6 +86,7 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
         SourceText Content
     )>.Empty;
     private bool includePostInitializationSources;
+    private bool updateExpectedSources;
     private ImmutableList<Func<string, string>> contentTransforms = ImmutableList<Func<string, string>>.Empty;
     private ImmutableList<Action<CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>>> configurations =
         ImmutableList<Action<CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>>>.Empty;
@@ -248,6 +250,26 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
     }
 
     /// <summary>
+    ///     Enables in-place updates of the expected generated files. When enabled, <see cref="BuildAsync" /> runs the
+    ///     generator and, for each expected generated file that is missing or whose content differs (comparing
+    ///     line-ending insensitively), overwrites it on disk with the produced output (normalized to CRLF).
+    /// </summary>
+    /// <remarks>
+    ///     Because it writes to the source tree, this is off by default. Gate it off wherever the workspace must not be
+    ///     mutated (e.g. running tests in CI) by passing <paramref name="enabled" /> a condition such as
+    ///     <c>Environment.GetEnvironmentVariable("CI") is null</c>. The assertion still runs when writes are
+    ///     suppressed, so regressions are still caught.
+    /// </remarks>
+    /// <param name="enabled">Whether to write updated expected files; defaults to <see langword="true" />.</param>
+    /// <returns>A new builder that writes updated expected files when <paramref name="enabled" /> is set.</returns>
+    public SourceGeneratorTestBuilder<TSourceGenerator, TVerifier> WithExpectedSourceUpdates(bool enabled = true)
+    {
+        var builder = Clone();
+        builder.updateExpectedSources = enabled;
+        return builder;
+    }
+
+    /// <summary>
     ///     Registers a content transform that replaces every <c>$(name)</c> token with <paramref name="value" /> in all
     ///     test case file contents (both sources and expected generated files) as they are loaded.
     /// </summary>
@@ -369,12 +391,16 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
         }
 
         var sourceFileTasks = testCase.SourceFiles.Select(file => LoadSourceFileAsync(file, testCase, token));
-        var generatedFileTasks = testCase.GeneratedFiles.Select(file => LoadGeneratedFileAsync(file, testCase, token));
-
         var sourceFiles = await Task.WhenAll(sourceFileTasks).ConfigureAwait(false);
-        var generatedFiles = await Task.WhenAll(generatedFileTasks).ConfigureAwait(false);
-
         test.TestState.Sources.AddRange(sourceFiles);
+
+        // When updating, write the generator's output over any missing/differing expected files, but assert against
+        // the pre-existing content so a write always coincides with a failure (see WithExpectedSourceUpdates).
+        var generatedFiles = this.updateExpectedSources
+            ? await UpdateAndLoadGeneratedFilesAsync(testCase, sourceFiles, token).ConfigureAwait(false)
+            : await Task.WhenAll(testCase.GeneratedFiles.Select(file => LoadGeneratedFileAsync(file, testCase, token)))
+                .ConfigureAwait(false);
+
         test.TestState.GeneratedSources.AddRange(generatedFiles);
 
         foreach (var configure in this.configurations)
@@ -395,6 +421,7 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
             disabledDiagnostics = this.disabledDiagnostics,
             generatedSources = this.generatedSources,
             includePostInitializationSources = this.includePostInitializationSources,
+            updateExpectedSources = this.updateExpectedSources,
             contentTransforms = this.contentTransforms,
             configurations = this.configurations,
             generatedFilePathResolver = this.generatedFilePathResolver,
@@ -436,6 +463,134 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
         }
 
         return contents;
+    }
+
+    private async Task<string?> TryLoadFileAsync(string? directory, string fileName, CancellationToken token)
+    {
+        var fullFileName = GetTestFilePath(directory, fileName);
+        if (!File.Exists(fullFileName))
+        {
+            return null;
+        }
+
+        return await LoadFileAsync(directory, fileName, token).ConfigureAwait(false);
+    }
+
+    private async Task<(string filename, SourceText content)[]> UpdateAndLoadGeneratedFilesAsync(
+        TestCase testCase,
+        (string filename, SourceText content)[] sourceFiles,
+        CancellationToken token
+    )
+    {
+        var produced = await GenerateSourcesAsync(sourceFiles, token).ConfigureAwait(false);
+
+        var generatedFiles = new (string filename, SourceText content)[testCase.GeneratedFiles.Length];
+        for (var i = 0; i < testCase.GeneratedFiles.Length; i++)
+        {
+            token.ThrowIfCancellationRequested();
+            var generatedFile = testCase.GeneratedFiles[i];
+
+            // The content the test will assert against: the expected file exactly as it exists now (null if it does
+            // not exist yet). Never the freshly written content — that is what keeps a mismatch a failure.
+            var original = await TryLoadFileAsync(testCase.Directory, generatedFile.SourceFileName, token)
+                .ConfigureAwait(false);
+
+            if (produced.TryGetValue(generatedFile.GeneratedFileName, out var producedText))
+            {
+                var producedContent = producedText.ToString();
+                if (original == null || !LineEndingAgnosticEquals(original, producedContent))
+                {
+                    var filePath = GetTestFilePath(testCase.Directory, generatedFile.SourceFileName);
+                    await WriteExpectedFileAsync(filePath, producedContent, token).ConfigureAwait(false);
+                }
+            }
+
+            generatedFiles[i] = (
+                ResolveGeneratedPath(generatedFile.GeneratedFileName),
+                SourceText.From(original ?? string.Empty, Encoding.UTF8)
+            );
+        }
+
+        return generatedFiles;
+    }
+
+    private async Task<Dictionary<string, SourceText>> GenerateSourcesAsync(
+        (string filename, SourceText content)[] sourceFiles,
+        CancellationToken token
+    )
+    {
+        var references = new List<MetadataReference>();
+        if (this.referenceAssemblies != null)
+        {
+            references.AddRange(
+                await this.referenceAssemblies.ResolveAsync(LanguageNames.CSharp, token).ConfigureAwait(false)
+            );
+        }
+
+        foreach (var name in this.additionalReferences)
+        {
+            var path = Path.IsPathRooted(name) ? name : Path.Combine(AppContext.BaseDirectory, name);
+            references.Add(MetadataReference.CreateFromFile(path));
+        }
+
+        var syntaxTrees = sourceFiles.Select(file =>
+            CSharpSyntaxTree.ParseText(file.content, path: file.filename, cancellationToken: token)
+        );
+
+        var compilation = CSharpCompilation.Create(
+            "ZCrew.ExpectedSourceUpdate",
+            syntaxTrees,
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
+
+        var generator = GeneratorActivator.CreateSourceGenerator<TSourceGenerator>();
+        var runResult = CSharpGeneratorDriver.Create(generator).RunGenerators(compilation, token).GetRunResult();
+
+        var produced = new Dictionary<string, SourceText>(StringComparer.Ordinal);
+        foreach (var result in runResult.Results)
+        {
+            foreach (var source in result.GeneratedSources)
+            {
+                produced[source.HintName] = source.SourceText;
+            }
+        }
+
+        return produced;
+    }
+
+    private static async Task WriteExpectedFileAsync(string filePath, string content, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        // UTF-8 without a BOM, CRLF line endings — matching the repository's checked-in generated fixtures.
+        using var writer = new StreamWriter(
+            filePath,
+            append: false,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
+        );
+        await writer.WriteAsync(NormalizeToCrlf(content)).ConfigureAwait(false);
+    }
+
+    private static bool LineEndingAgnosticEquals(string left, string right)
+    {
+        return NormalizeToLf(left) == NormalizeToLf(right);
+    }
+
+    private static string NormalizeToLf(string value)
+    {
+        return value.Replace("\r\n", "\n").Replace("\r", "\n");
+    }
+
+    private static string NormalizeToCrlf(string value)
+    {
+        return NormalizeToLf(value).Replace("\n", "\r\n");
     }
 
     private string ResolveGeneratedPath(string hintName)

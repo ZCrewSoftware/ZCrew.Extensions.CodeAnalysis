@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 
@@ -26,6 +27,25 @@ public readonly struct TestPath
     ///     This can be useful when you want to avoid starting a path without the <see cref="CurrentDirectory" />.
     /// </remarks>
     public static readonly TestPath Empty = new("");
+
+    /// <summary>
+    ///     Returns the directory of the source file that calls this method, captured at compile time via
+    ///     <see cref="CallerFilePathAttribute" />.
+    /// </summary>
+    /// <remarks>
+    ///     This resolves test fixtures relative to the source tree rather than the build output directory, so
+    ///     files loaded through the returned path (and anything written back to them) stay in the tracked source
+    ///     location. Because the path is baked in when the caller is compiled, it is valid for the local
+    ///     build-and-run loop and for CI, which builds and runs from the same checkout.
+    /// </remarks>
+    /// <param name="callerFilePath">
+    ///     Supplied automatically by the compiler; do not pass a value. The absolute path of the calling source file.
+    /// </param>
+    /// <returns>A <see cref="TestPath" /> for the directory containing the calling source file.</returns>
+    public static TestPath ForCaller([CallerFilePath] string callerFilePath = "")
+    {
+        return new TestPath(Path.GetDirectoryName(callerFilePath)!);
+    }
 
     private readonly string path;
 
