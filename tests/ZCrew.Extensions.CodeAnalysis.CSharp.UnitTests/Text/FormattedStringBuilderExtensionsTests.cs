@@ -103,4 +103,90 @@ public class FormattedStringBuilderExtensionsTests
             """;
         Assert.Equal(expectedString, formattedStringBuilder.ToString());
     }
+
+    [Theory]
+    [InlineData("first\nsecond\nthird")]
+    [InlineData("first\r\nsecond\r\nthird")]
+    [InlineData("first\nsecond\r\nthird")]
+    public void AppendMultiline_WhenCalledWithDifferentLineEndings_ShouldNormalizeToBuilderNewlines(string lines)
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder.AppendMultiline(lines);
+
+        // Assert
+        var expectedString = """
+            first
+            second
+            third
+
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendMultiline_WhenCalledWithSingleLine_ShouldAppendLineWithTerminator()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        formattedStringBuilder.AppendMultiline("only");
+
+        // Assert
+        var expectedString = """
+            only
+
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
+
+    [Fact]
+    public void AppendMultiline_WhenCalled_ShouldReturnSameBuilder()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+
+        // Act
+        var result = formattedStringBuilder.AppendMultiline("line");
+
+        // Assert
+        Assert.Same(formattedStringBuilder, result);
+    }
+
+    [Fact]
+    public void AppendMultiline_WhenBuilderIsIndented_ShouldIndentEachAppendedLine()
+    {
+        // Arrange
+        var formattedStringBuilder = new FormattedStringBuilder();
+        var comment = """
+            /// <summary>
+            /// Generated method for registering a component.
+            /// </summary>
+            """;
+
+        // Act
+        formattedStringBuilder
+            .Append('{')
+            .Indent()
+            .AppendLine()
+            .AppendMultiline(comment)
+            .Append("public void Register() { }")
+            .Unindent()
+            .AppendLine()
+            .Append('}');
+
+        // Assert
+        var expectedString = """
+            {
+                /// <summary>
+                /// Generated method for registering a component.
+                /// </summary>
+                public void Register() { }
+            }
+            """;
+        Assert.Equal(expectedString, formattedStringBuilder.ToString());
+    }
 }
