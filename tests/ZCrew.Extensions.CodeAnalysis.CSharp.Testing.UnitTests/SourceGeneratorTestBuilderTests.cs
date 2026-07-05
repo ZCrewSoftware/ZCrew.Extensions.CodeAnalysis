@@ -1,11 +1,37 @@
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests.TestDoubles;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests;
 
+[SuppressMessage("ReSharper", "AccessToDisposedClosure")]
 public class SourceGeneratorTestBuilderTests
 {
+    // A source whose newlines are explicit '\n' so line/column assertions do not depend on the file's line endings
+    private const string SnippetSource = "class Sample\n{\n    Undefined Value;\n}\n";
+
+    private static async Task<CSharpSourceGeneratorTest<EmptyGenerator, DefaultVerifier>> BuildWithSourceAsync(
+        TempDirectory temp,
+        string sourceContent,
+        TestExpectedDiagnostic expected,
+        string testName = "Test"
+    )
+    {
+        temp.WriteFile("Source.cs", sourceContent);
+        var testCase = new TestCase(testName)
+        {
+            Directory = temp.DirectoryPath,
+            SourceFiles = [new TestSourceFile { SourceFileName = "Source.cs", ExpectedDiagnostics = [expected] }],
+        };
+
+        return await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+    }
+
     private static string ExpectedGeneratedPath<TGenerator>(string hintName)
     {
         return Path.Combine(typeof(TGenerator).Assembly.GetName().Name!, typeof(TGenerator).FullName!, hintName);
@@ -359,5 +385,279 @@ public class SourceGeneratorTestBuilderTests
 
         // Assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(act);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithSnippetDiagnostic_ShouldResolveStartLocation()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic { Id = "CS0246", Snippet = "Undefined" };
+
+        // Act
+        var test = await BuildWithSourceAsync(temp, SnippetSource, expected);
+
+        // Assert
+        var diagnostic = Assert.Single(test.TestState.ExpectedDiagnostics);
+        Assert.Equal("CS0246", diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+        var location = Assert.Single(diagnostic.Spans);
+        Assert.Equal("Source.cs", location.Span.Path);
+        Assert.Equal(new LinePosition(2, 4), location.Span.StartLinePosition);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithExplicitLineColumn_ShouldUseGivenPosition()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic
+        {
+            Id = "CS0246",
+            Line = 3,
+            Column = 5,
+        };
+
+        // Act
+        var test = await BuildWithSourceAsync(temp, SnippetSource, expected);
+
+        // Assert
+        var diagnostic = Assert.Single(test.TestState.ExpectedDiagnostics);
+        var location = Assert.Single(diagnostic.Spans);
+        Assert.Equal("Source.cs", location.Span.Path);
+        // Line/Column are 1-based; the framework stores a 0-based LinePosition.
+        Assert.Equal(new LinePosition(2, 4), location.Span.StartLinePosition);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithSeverity_ShouldSetSeverity()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic
+        {
+            Id = "ZC1001",
+            Severity = DiagnosticSeverity.Warning,
+            Snippet = "Undefined",
+        };
+
+        // Act
+        var test = await BuildWithSourceAsync(temp, SnippetSource, expected);
+
+        // Assert
+        var diagnostic = Assert.Single(test.TestState.ExpectedDiagnostics);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithDiagnosticMessage_ShouldExpandAndSetMessage()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic
+        {
+            Id = "CS0246",
+            Snippet = "Undefined",
+            Message = "issue in $(TestName)",
+        };
+
+        // Act
+        var test = await BuildWithSourceAsync(temp, SnippetSource, expected, testName: "MyTest");
+
+        // Assert
+        var diagnostic = Assert.Single(test.TestState.ExpectedDiagnostics);
+        Assert.Equal("issue in MyTest", diagnostic.Message);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithoutMessage_ShouldNotAssertMessage()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic { Id = "CS0246", Snippet = "Undefined" };
+
+        // Act
+        var test = await BuildWithSourceAsync(temp, SnippetSource, expected);
+
+        // Assert
+        var diagnostic = Assert.Single(test.TestState.ExpectedDiagnostics);
+        Assert.Null(diagnostic.Message);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithDiagnosticsOnMultipleFiles_ShouldScopeSnippetToContainingFile()
+    {
+        // Arrange — the same snippet appears in both files, so each resolves only within the file it is declared on.
+        using var temp = new TempDirectory();
+        temp.WriteFile("A.cs", "class A { Undefined X; }");
+        temp.WriteFile("B.cs", "class B { Undefined Y; }");
+        var testCase = new TestCase
+        {
+            Directory = temp.DirectoryPath,
+            SourceFiles =
+            [
+                new TestSourceFile
+                {
+                    SourceFileName = "A.cs",
+                    ExpectedDiagnostics = [new TestExpectedDiagnostic { Id = "CS0246", Snippet = "Undefined" }],
+                },
+                new TestSourceFile
+                {
+                    SourceFileName = "B.cs",
+                    ExpectedDiagnostics = [new TestExpectedDiagnostic { Id = "CS0103", Snippet = "Undefined" }],
+                },
+            ],
+        };
+
+        // Act
+        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert — each diagnostic points at its own file.
+        Assert.Equal(2, test.TestState.ExpectedDiagnostics.Count);
+        var fromA = test.TestState.ExpectedDiagnostics.Single(d => d.Id == "CS0246");
+        var fromB = test.TestState.ExpectedDiagnostics.Single(d => d.Id == "CS0103");
+        Assert.Equal("A.cs", Assert.Single(fromA.Spans).Span.Path);
+        Assert.Equal("B.cs", Assert.Single(fromB.Spans).Span.Path);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithGeneratedFileDiagnostic_ShouldResolveInGeneratedContent()
+    {
+        // Arrange — "Broken" is on line 2 (0-based 1), starting at char 12.
+        using var temp = new TempDirectory();
+        temp.WriteFile("Expected.g.cs", "// generated\nclass Gen { Broken X; }\n");
+        var testCase = new TestCase
+        {
+            Directory = temp.DirectoryPath,
+            GeneratedFiles =
+            [
+                new TestGeneratedFile
+                {
+                    SourceFileName = "Expected.g.cs",
+                    GeneratedFileName = "Gen.g.cs",
+                    ExpectedDiagnostics = [new TestExpectedDiagnostic { Id = "CS0246", Snippet = "Broken" }],
+                },
+            ],
+        };
+
+        // Act
+        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert — the location resolves against the generated file's resolved hint-name path.
+        var diagnostic = Assert.Single(test.TestState.ExpectedDiagnostics);
+        var location = Assert.Single(diagnostic.Spans);
+        Assert.Equal(ExpectedGeneratedPath<EmptyGenerator>("Gen.g.cs"), location.Span.Path);
+        Assert.Equal(new LinePosition(1, 12), location.Span.StartLinePosition);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithTopLevelDiagnostic_ShouldSetNoLocation()
+    {
+        // Arrange — a top-level diagnostic is locationless.
+        using var temp = new TempDirectory();
+        var testCase = new TestCase
+        {
+            Directory = temp.DirectoryPath,
+            ExpectedDiagnostics = [new TestExpectedDiagnostic { Id = "CS5001" }],
+        };
+
+        // Act
+        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert
+        var diagnostic = Assert.Single(test.TestState.ExpectedDiagnostics);
+        Assert.Equal("CS5001", diagnostic.Id);
+        Assert.Empty(diagnostic.Spans);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithTopLevelDiagnosticHavingLocation_ShouldThrow()
+    {
+        // Arrange — a top-level diagnostic must not carry a location.
+        using var temp = new TempDirectory();
+        var testCase = new TestCase
+        {
+            Directory = temp.DirectoryPath,
+            ExpectedDiagnostics = [new TestExpectedDiagnostic { Id = "CS0246", Snippet = "Undefined" }],
+        };
+
+        // Act
+        var act = async () =>
+            await SourceGeneratorTestBuilder<EmptyGenerator>
+                .Create()
+                .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(act);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithSnippetNotFound_ShouldThrow()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic { Id = "CS0246", Snippet = "DoesNotExist" };
+
+        // Act
+        var act = async () => await BuildWithSourceAsync(temp, SnippetSource, expected);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Contains("DoesNotExist", exception.Message);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithAmbiguousSnippet_ShouldThrow()
+    {
+        // Arrange — "Value" occurs in both "Value1" and "Value2".
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic { Id = "CS0246", Snippet = "Value" };
+
+        // Act
+        var act = async () => await BuildWithSourceAsync(temp, "class A { int Value1; int Value2; }", expected);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Contains("more than once", exception.Message);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithSnippetAndExplicitLocation_ShouldThrow()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic
+        {
+            Id = "CS0246",
+            Snippet = "Undefined",
+            Line = 3,
+            Column = 5,
+        };
+
+        // Act
+        var act = async () => await BuildWithSourceAsync(temp, SnippetSource, expected);
+
+        // Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(act);
+    }
+
+    [Fact]
+    public async Task BuildAsync_WithoutSnippetOrLocation_ShouldThrow()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        var expected = new TestExpectedDiagnostic { Id = "CS0246" };
+
+        // Act
+        var act = async () => await BuildWithSourceAsync(temp, SnippetSource, expected);
+
+        // Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(act);
     }
 }

@@ -393,6 +393,8 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
 
         test.TestState.GeneratedSources.AddRange(generatedFiles);
 
+        AddExpectedDiagnostics(test, testCase, sourceFiles, generatedFiles);
+
         foreach (var configure in this.configurations)
         {
             configure(test);
@@ -590,6 +592,129 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
             / typeof(TSourceGenerator).Assembly.GetName().Name
             / typeof(TSourceGenerator).FullName
             / hintName;
+    }
+
+    private void AddExpectedDiagnostics(
+        CSharpSourceGeneratorTest<TSourceGenerator, TVerifier> test,
+        ITestCase testCase,
+        (string filename, SourceText content)[] sourceFiles,
+        (string filename, SourceText content)[] generatedFiles
+    )
+    {
+        // Locationless diagnostics declared at the top level (Location.None).
+        foreach (var expected in testCase.ExpectedDiagnostics)
+        {
+            test.TestState.ExpectedDiagnostics.Add(BuildLocationlessDiagnostic(expected, testCase));
+        }
+
+        // Diagnostics located within a specific input source file.
+        for (var i = 0; i < testCase.SourceFiles.Count; i++)
+        {
+            var (path, content) = sourceFiles[i];
+            foreach (var expected in testCase.SourceFiles[i].ExpectedDiagnostics)
+            {
+                test.TestState.ExpectedDiagnostics.Add(BuildLocatedDiagnostic(expected, testCase, path, content));
+            }
+        }
+
+        // Diagnostics located within a specific generated file's expected content.
+        for (var i = 0; i < testCase.GeneratedFiles.Count; i++)
+        {
+            var (path, content) = generatedFiles[i];
+            foreach (var expected in testCase.GeneratedFiles[i].ExpectedDiagnostics)
+            {
+                test.TestState.ExpectedDiagnostics.Add(BuildLocatedDiagnostic(expected, testCase, path, content));
+            }
+        }
+    }
+
+    private DiagnosticResult BuildLocationlessDiagnostic(TestExpectedDiagnostic expected, ITestCase testCase)
+    {
+        if (!string.IsNullOrEmpty(expected.Snippet) || expected.Line.HasValue || expected.Column.HasValue)
+        {
+            throw new InvalidOperationException(
+                $"Expected diagnostic '{expected.Id}' declared at the top level is locationless; declare it on a source or generated file to give it a Snippet or Line/Column."
+            );
+        }
+
+        var diagnostic = new DiagnosticResult(expected.Id, expected.Severity).WithNoLocation();
+        return ApplyMessage(diagnostic, expected, testCase);
+    }
+
+    private DiagnosticResult BuildLocatedDiagnostic(
+        TestExpectedDiagnostic expected,
+        ITestCase testCase,
+        string path,
+        SourceText content
+    )
+    {
+        var (line, column) = ResolveLocation(expected, path, content, testCase);
+
+        // WithLocation asserts the start position only (the framework ignores the span length), matching the
+        // "point at where the diagnostic starts" model the test case describes.
+        var diagnostic = new DiagnosticResult(expected.Id, expected.Severity).WithLocation(path, line, column);
+        return ApplyMessage(diagnostic, expected, testCase);
+    }
+
+    private DiagnosticResult ApplyMessage(
+        DiagnosticResult diagnostic,
+        TestExpectedDiagnostic expected,
+        ITestCase testCase
+    )
+    {
+        return expected.Message == null
+            ? diagnostic
+            : diagnostic.WithMessage(ExpandVariables(testCase, expected.Message));
+    }
+
+    private (int line, int column) ResolveLocation(
+        TestExpectedDiagnostic expected,
+        string path,
+        SourceText content,
+        ITestCase testCase
+    )
+    {
+        var hasSnippet = !string.IsNullOrEmpty(expected.Snippet);
+
+        if (hasSnippet && (expected.Line.HasValue || expected.Column.HasValue))
+        {
+            throw new InvalidOperationException(
+                $"Expected diagnostic '{expected.Id}' in '{path}' specifies both a Snippet and an explicit Line/Column; use one or the other."
+            );
+        }
+
+        if (!hasSnippet)
+        {
+            if (!expected.Line.HasValue || !expected.Column.HasValue)
+            {
+                throw new InvalidOperationException(
+                    $"Expected diagnostic '{expected.Id}' in '{path}' must specify either a Snippet or both Line and Column."
+                );
+            }
+
+            return (expected.Line.Value, expected.Column.Value);
+        }
+
+        var snippet = ExpandVariables(testCase, expected.Snippet!);
+        var text = content.ToString();
+
+        var index = text.IndexOf(snippet, StringComparison.Ordinal);
+        if (index < 0)
+        {
+            throw new InvalidOperationException(
+                $"Expected diagnostic '{expected.Id}' could not locate the snippet '{snippet}' in '{path}'."
+            );
+        }
+
+        if (text.IndexOf(snippet, index + 1, StringComparison.Ordinal) >= 0)
+        {
+            throw new InvalidOperationException(
+                $"Expected diagnostic '{expected.Id}' located the snippet '{snippet}' more than once in '{path}'; use a more specific snippet or an explicit Line/Column."
+            );
+        }
+
+        var position = content.Lines.GetLinePosition(index);
+        return (position.Line + 1, position.Character + 1);
     }
 
     private string ExpandVariables(ITestCase testCase, string text)

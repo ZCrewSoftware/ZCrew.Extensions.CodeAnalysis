@@ -45,6 +45,12 @@ public class TestCase : ITestCase
     /// <inheritdoc cref="ITestCase.GeneratedFiles"/>
     IReadOnlyList<TestGeneratedFile> ITestCase.GeneratedFiles => GeneratedFiles;
 
+    /// <inheritdoc cref="ITestCase.ExpectedDiagnostics"/>
+    public List<TestExpectedDiagnostic> ExpectedDiagnostics { get; set; } = [];
+
+    /// <inheritdoc cref="ITestCase.ExpectedDiagnostics"/>
+    IReadOnlyList<TestExpectedDiagnostic> ITestCase.ExpectedDiagnostics => ExpectedDiagnostics;
+
     /// <inheritdoc/>
     public string? Directory { get; set; }
 

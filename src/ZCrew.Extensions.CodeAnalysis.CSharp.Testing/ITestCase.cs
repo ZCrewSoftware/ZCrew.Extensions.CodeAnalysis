@@ -27,6 +27,13 @@ public interface ITestCase
     IReadOnlyList<TestGeneratedFile> GeneratedFiles { get; }
 
     /// <summary>
+    ///     The diagnostics the test expects the compilation or generator to report with no location
+    ///     (<see cref="Microsoft.CodeAnalysis.Location.None" />). Diagnostics tied to a specific file are declared on
+    ///     that <see cref="TestSourceFile" /> or <see cref="TestGeneratedFile" /> instead.
+    /// </summary>
+    IReadOnlyList<TestExpectedDiagnostic> ExpectedDiagnostics { get; }
+
+    /// <summary>
     ///     The directory that <see cref="SourceFiles" /> and <see cref="TestGeneratedFile.SourceFileName" /> are
     ///     resolved relative to. Typically set to the directory of the descriptor that produced this test case (for
     ///     example by <see cref="JsonTestCase.FromJsonFile" />).
