@@ -33,15 +33,21 @@ public static class SymbolExtensions
         parameterOptions: SymbolDisplayParameterOptions.IncludeExtensionThis
             | SymbolDisplayParameterOptions.IncludeModifiers
             | SymbolDisplayParameterOptions.IncludeType
-            | SymbolDisplayParameterOptions.IncludeName
-            | SymbolDisplayParameterOptions.IncludeDefaultValue,
-        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+            | SymbolDisplayParameterOptions.IncludeName,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+            | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
+            | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
     );
 
     private static readonly SymbolDisplayFormat classDeclarationFormat = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-        kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
+            | SymbolDisplayGenericsOptions.IncludeVariance,
+        kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+            | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
+            | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
     );
 
     extension(ISymbol symbol)
@@ -155,7 +161,7 @@ public static class SymbolExtensions
         ///         public static partial void Print(global::System.Collections.Generic.IEnumerable values)
         ///     </code>
         /// </example>
-        internal string ToPartialMethodDeclaration()
+        public string ToPartialMethodDeclaration()
         {
             var stringBuilder = new StringBuilder();
 
@@ -168,21 +174,23 @@ public static class SymbolExtensions
             stringBuilder.Append("partial ");
 
             // Add the method name, parameters, constraints, etc.
-            stringBuilder.Append(symbol.ToDisplayString());
+            stringBuilder.Append(symbol.ToDisplayString(methodDeclarationPostPartialFormat));
             return stringBuilder.ToString();
         }
 
         /// <summary>
-        ///     Generates a single-line partial class declaration used to provide a partial class part. Accessibility,
-        ///     modifiers, generic types, and generic type constraints are not included as they are not necessary.
+        ///     Generates a single-line partial type declaration used to provide a partial type part. This is meant for
+        ///     <see langword="class"/>, <see langword="record"/>, <see langword="struct"/> and
+        ///     <see langword="interface"/> types. Accessibility, modifiers and generic type constraints are not
+        ///     included as they are not necessary.
         /// </summary>
-        /// <returns>The partial class declaration.</returns>
+        /// <returns>The partial type declaration.</returns>
         /// <example>
         ///     <code>
         ///         partial class EnumerableExtensions
         ///     </code>
         /// </example>
-        internal string ToPartialClassDeclaration()
+        public string ToPartialTypeDeclaration()
         {
             var stringBuilder = new StringBuilder();
 

@@ -38,14 +38,21 @@ public static class StringBuilderExtensions
         /// <returns></returns>
         public StringBuilder AppendMemberModifiers(ISymbol symbol)
         {
+            // Emit in the canonical C# modifier order (see StyleCop SA1206 / IDE0036):
+            // static extern new virtual abstract sealed override.
             if (symbol.IsStatic)
             {
                 builder.Append("static ");
             }
 
-            if (symbol.IsOverride)
+            if (symbol.IsExtern)
             {
-                builder.Append("override ");
+                builder.Append("extern ");
+            }
+
+            if (symbol.IsVirtual)
+            {
+                builder.Append("virtual ");
             }
 
             if (symbol.IsAbstract)
@@ -58,14 +65,9 @@ public static class StringBuilderExtensions
                 builder.Append("sealed ");
             }
 
-            if (symbol.IsExtern)
+            if (symbol.IsOverride)
             {
-                builder.Append("extern ");
-            }
-
-            if (symbol.IsVirtual)
-            {
-                builder.Append("virtual ");
+                builder.Append("override ");
             }
 
             return builder;

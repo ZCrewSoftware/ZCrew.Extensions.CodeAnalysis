@@ -244,7 +244,7 @@ internal static class IsTypeMethodInfoFactory
 
         for (var current = method.ContainingType; current is not null; current = current.ContainingType)
         {
-            declarations.Add(current.ToPartialClassDeclaration());
+            declarations.Add(current.ToPartialTypeDeclaration());
             names.Add(current.Name);
         }
 
