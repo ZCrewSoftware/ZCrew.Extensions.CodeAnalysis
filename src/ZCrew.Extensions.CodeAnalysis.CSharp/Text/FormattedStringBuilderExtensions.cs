@@ -137,5 +137,53 @@ public static class FormattedStringBuilderExtensions
             builder.Append("\"\"\"");
             return builder;
         }
+
+        /// <summary>
+        ///     Appends a multiline <see cref="string"/>.
+        /// </summary>
+        /// <param name="lines">The multiline string to write.</param>
+        /// <returns>A reference to this instance after the append operation has completed.</returns>
+        /// <example>
+        /// <code>
+        ///     private const string Comment =
+        ///         """
+        ///         /// <summary>
+        ///         /// Generated method for registering a component.
+        ///         /// </summary>
+        ///         """;
+        ///     private string comment = new FormattedStringBuilder()
+        ///         .Append('{')
+        ///         .Indent()
+        ///         .AppendLine()
+        ///         .AppendMultiline(Comment)
+        ///         .Append("public void Register() {}")
+        ///         .Unindent()
+        ///         .AppendLine()
+        ///         .Append('}');
+        /// </code>
+        /// Would generate:
+        /// <code>
+        ///     {
+        ///         /// <summary>
+        ///         /// Generated method for registering a component.
+        ///         /// </summary>
+        ///         public void Register() {}
+        ///     }
+        /// </code>
+        /// </example>
+        /// <remarks>
+        ///     This may be useful when emitting XML comments where the comment is static and should be readable in the
+        ///     source code.
+        /// </remarks>
+        public FormattedStringBuilder AppendMultiline(string lines)
+        {
+            // Normalize to the builder's own newlines
+            foreach (var line in lines.Split(["\r\n", "\n"], StringSplitOptions.None))
+            {
+                builder.AppendLine(line);
+            }
+
+            return builder;
+        }
     }
 }
