@@ -5,7 +5,7 @@ namespace ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.AttributeTes
 
 public class AttributeTests
 {
-    private static readonly TestPath testCases = TestPath.CurrentDirectory / "AttributeTests" / "TestCases";
+    private static readonly TestPath TestCases = TestPath.ForCaller() / "TestCases";
 
     [Theory]
     [InlineData("MultipleNamedParameters.json")]
@@ -16,7 +16,7 @@ public class AttributeTests
     public async Task EmbeddedAttribute_WithReplaceAction_ShouldGenerateCodeToReplaceServices(string testDescriptor)
     {
         // Arrange
-        var testCaseFile = testCases / testDescriptor;
+        var testCaseFile = TestCases / testDescriptor;
         var testCase = await JsonTestCase.FromJsonFileAsync(testCaseFile, TestContext.Current.CancellationToken);
 
         // Act

@@ -5,7 +5,7 @@ namespace ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.IsTypeTests;
 
 public class IsTypeTests
 {
-    private static readonly TestPath testCases = TestPath.CurrentDirectory / "IsTypeTests" / "TestCases";
+    private static readonly TestPath TestCases = TestPath.ForCaller() / "TestCases";
 
     [Theory]
     [InlineData("ServiceKeyGeneric.json")]
@@ -23,7 +23,7 @@ public class IsTypeTests
     public async Task IsType_WithMarkedPartialMethod_ShouldGenerateTypeCheck(string testDescriptor)
     {
         // Arrange
-        var testCaseFile = testCases / testDescriptor;
+        var testCaseFile = TestCases / testDescriptor;
         var testCase = await JsonTestCase.FromJsonFileAsync(testCaseFile, TestContext.Current.CancellationToken);
 
         // Act

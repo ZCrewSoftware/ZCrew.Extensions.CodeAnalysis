@@ -22,7 +22,10 @@ internal static class GeneratorTest
             // Disable the warning on the source files about missing XML comments
             .WithDisabledDiagnostics("CS1591")
             // All tests will emit the post-initialization sources (e.g. 'Microsoft.CodeAnalysis.EmbeddedAttribute')
-            .WithGeneratorPostInitializationSources();
+            .WithGeneratorPostInitializationSources()
+            // Overwrite mismatched/missing expected files in place for review, but never on CI (writes only, the
+            // assertion still runs and fails regardless).
+            .WithExpectedSourceUpdates(enabled: Environment.GetEnvironmentVariable("CI") is null);
 
     /// <summary>
     ///     The shared baseline for <see cref="IsTypeIncrementalGenerator" /> tests. Mirrors <see cref="Baseline" /> but
@@ -41,5 +44,8 @@ internal static class GeneratorTest
             // Disable the warning on the source files about missing XML comments
             .WithDisabledDiagnostics("CS1591")
             // All tests will emit the post-initialization sources (e.g. the 'IsTypeAttribute' definition)
-            .WithGeneratorPostInitializationSources();
+            .WithGeneratorPostInitializationSources()
+            // Overwrite mismatched/missing expected files in place for review, but never on CI (writes only, the
+            // assertion still runs and fails regardless).
+            .WithExpectedSourceUpdates(enabled: Environment.GetEnvironmentVariable("CI") is null);
 }
