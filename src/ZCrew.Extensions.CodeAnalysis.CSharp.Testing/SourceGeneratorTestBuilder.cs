@@ -41,7 +41,7 @@ public static class SourceGeneratorTestBuilder<TSourceGenerator>
 
 /// <summary>
 ///     Builds <see cref="CSharpSourceGeneratorTest{TSourceGenerator, TVerifier}" /> instances from a
-///     <see cref="TestCase" />.
+///     <see cref="ITestCase" />.
 /// </summary>
 /// <remarks>
 ///     The builder is immutable: every <c>With*</c> method returns a new builder and leaves the original unchanged.
@@ -66,7 +66,7 @@ public static class SourceGeneratorTestBuilder<TSourceGenerator>
 ///     [Fact]
 ///     public async Task Generates_Expected_Sources()
 ///     {
-///         var testCase = await JsonTestCase.FromJsonFileAsync("TestCases/MyCase.json");
+///         var testCase = await JsonTestCase.FromJsonFileAsync("ITestCases/MyCase.json");
 ///         // The shared Baseline is never mutated; BuildAsync produces a fresh test.
 ///         var test = await Baseline.BuildAsync(testCase);
 ///         await test.RunAsync();
@@ -81,13 +81,14 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
     private ImmutableList<string> additionalReferences = ImmutableList<string>.Empty;
     private CompilerDiagnostics? compilerDiagnostics;
     private ImmutableList<string> disabledDiagnostics = ImmutableList<string>.Empty;
+
     private ImmutableList<(string HintName, SourceText Content)> generatedSources = ImmutableList<(
         string HintName,
         SourceText Content
     )>.Empty;
+    private ImmutableDictionary<string, object?> properties = ImmutableDictionary<string, object?>.Empty;
     private bool includePostInitializationSources;
     private bool updateExpectedSources;
-    private ImmutableList<Func<string, string>> contentTransforms = ImmutableList<Func<string, string>>.Empty;
     private ImmutableList<Action<CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>>> configurations =
         ImmutableList<Action<CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>>>.Empty;
     private Func<string, string>? generatedFilePathResolver;
@@ -282,21 +283,10 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
     ///     builder.WithVariable("Namespace", "MyApp.Generated");
     ///     </code>
     /// </example>
-    public SourceGeneratorTestBuilder<TSourceGenerator, TVerifier> WithVariable(string name, string value)
-    {
-        return WithContentTransform(content => content.Replace($"$({name})", value));
-    }
-
-    /// <summary>
-    ///     Adds a transform applied to all test case file contents (sources and expected generated files) as they are
-    ///     loaded. Transforms run in registration order.
-    /// </summary>
-    /// <param name="transform">A function that maps the raw file contents to the contents used by the test.</param>
-    /// <returns>A new builder that applies <paramref name="transform" /> when loading file contents.</returns>
-    public SourceGeneratorTestBuilder<TSourceGenerator, TVerifier> WithContentTransform(Func<string, string> transform)
+    public SourceGeneratorTestBuilder<TSourceGenerator, TVerifier> WithVariable(string name, object? value)
     {
         var builder = Clone();
-        builder.contentTransforms = this.contentTransforms.Add(transform);
+        builder.properties = builder.properties.Add(name, value);
         return builder;
     }
 
@@ -337,7 +327,7 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
     /// </summary>
     /// <param name="testCase">
     ///     The test case describing the source files to compile and the generated files to verify. File names are
-    ///     resolved relative to <see cref="TestCase.Directory" />.
+    ///     resolved relative to <see cref="ITestCase.Directory" />.
     /// </param>
     /// <param name="token">A token to cancel the asynchronous file loading.</param>
     /// <returns>A configured test that has not yet been run.</returns>
@@ -351,7 +341,7 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
     ///     an <see cref="IIncrementalGenerator" /> nor an <see cref="ISourceGenerator" />.
     /// </exception>
     public async Task<CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>> BuildAsync(
-        TestCase testCase,
+        ITestCase testCase,
         CancellationToken token = default
     )
     {
@@ -422,7 +412,6 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
             generatedSources = this.generatedSources,
             includePostInitializationSources = this.includePostInitializationSources,
             updateExpectedSources = this.updateExpectedSources,
-            contentTransforms = this.contentTransforms,
             configurations = this.configurations,
             generatedFilePathResolver = this.generatedFilePathResolver,
         };
@@ -430,83 +419,80 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
 
     private async Task<(string filename, SourceText content)> LoadSourceFileAsync(
         TestSourceFile testSourceFile,
-        TestCase testCase,
+        ITestCase testCase,
         CancellationToken token
     )
     {
-        var contents = await LoadFileAsync(testCase.Directory, testSourceFile.SourceFileName, token)
-            .ConfigureAwait(false);
-        return (testSourceFile.SourceFileName, SourceText.From(contents, Encoding.UTF8));
+        var fileName = ExpandVariables(testCase, testSourceFile.SourceFileName);
+        var contents = await LoadFileAsync(testCase, fileName, token).ConfigureAwait(false);
+        return (fileName, SourceText.From(contents, Encoding.UTF8));
     }
 
     private async Task<(string filename, SourceText content)> LoadGeneratedFileAsync(
         TestGeneratedFile testGeneratedFile,
-        TestCase testCase,
+        ITestCase testCase,
         CancellationToken token
     )
     {
-        var contents = await LoadFileAsync(testCase.Directory, testGeneratedFile.SourceFileName, token)
-            .ConfigureAwait(false);
-        return (ResolveGeneratedPath(testGeneratedFile.GeneratedFileName), SourceText.From(contents, Encoding.UTF8));
+        var sourceFileName = ExpandVariables(testCase, testGeneratedFile.SourceFileName);
+        var contents = await LoadFileAsync(testCase, sourceFileName, token).ConfigureAwait(false);
+        var generatedFileName = ExpandVariables(testCase, testGeneratedFile.GeneratedFileName);
+        return (ResolveGeneratedPath(generatedFileName), SourceText.From(contents, Encoding.UTF8));
     }
 
-    private async Task<string> LoadFileAsync(string? directory, string fileName, CancellationToken token)
+    private async Task<string> LoadFileAsync(ITestCase testCase, string fileName, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var fullFileName = GetTestFilePath(directory, fileName);
+        var fullFileName = GetTestFilePath(testCase.Directory, fileName);
         using var reader = new StreamReader(fullFileName, Encoding.UTF8);
         var contents = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-        foreach (var transform in this.contentTransforms)
-        {
-            contents = transform(contents);
-        }
-
-        return contents;
+        return ExpandVariables(testCase, contents);
     }
 
-    private async Task<string?> TryLoadFileAsync(string? directory, string fileName, CancellationToken token)
+    private async Task<string?> TryLoadFileAsync(ITestCase testCase, string fileName, CancellationToken token)
     {
-        var fullFileName = GetTestFilePath(directory, fileName);
+        var fullFileName = GetTestFilePath(testCase.Directory, fileName);
         if (!File.Exists(fullFileName))
         {
             return null;
         }
 
-        return await LoadFileAsync(directory, fileName, token).ConfigureAwait(false);
+        return await LoadFileAsync(testCase, fileName, token).ConfigureAwait(false);
     }
 
     private async Task<(string filename, SourceText content)[]> UpdateAndLoadGeneratedFilesAsync(
-        TestCase testCase,
+        ITestCase testCase,
         (string filename, SourceText content)[] sourceFiles,
         CancellationToken token
     )
     {
         var produced = await GenerateSourcesAsync(sourceFiles, token).ConfigureAwait(false);
 
-        var generatedFiles = new (string filename, SourceText content)[testCase.GeneratedFiles.Length];
-        for (var i = 0; i < testCase.GeneratedFiles.Length; i++)
+        var generatedFiles = new (string filename, SourceText content)[testCase.GeneratedFiles.Count];
+        for (var i = 0; i < testCase.GeneratedFiles.Count; i++)
         {
             token.ThrowIfCancellationRequested();
             var generatedFile = testCase.GeneratedFiles[i];
+            var sourceFileName = ExpandVariables(testCase, generatedFile.SourceFileName);
+            var generatedFileName = ExpandVariables(testCase, generatedFile.GeneratedFileName);
 
             // The content the test will assert against: the expected file exactly as it exists now (null if it does
             // not exist yet). Never the freshly written content — that is what keeps a mismatch a failure.
-            var original = await TryLoadFileAsync(testCase.Directory, generatedFile.SourceFileName, token)
-                .ConfigureAwait(false);
+            var original = await TryLoadFileAsync(testCase, sourceFileName, token).ConfigureAwait(false);
 
-            if (produced.TryGetValue(generatedFile.GeneratedFileName, out var producedText))
+            if (produced.TryGetValue(generatedFileName, out var producedText))
             {
                 var producedContent = producedText.ToString();
                 if (original == null || !LineEndingAgnosticEquals(original, producedContent))
                 {
-                    var filePath = GetTestFilePath(testCase.Directory, generatedFile.SourceFileName);
+                    var filePath = GetTestFilePath(testCase.Directory, sourceFileName);
                     await WriteExpectedFileAsync(filePath, producedContent, token).ConfigureAwait(false);
                 }
             }
 
             generatedFiles[i] = (
-                ResolveGeneratedPath(generatedFile.GeneratedFileName),
+                ResolveGeneratedPath(generatedFileName),
                 SourceText.From(original ?? string.Empty, Encoding.UTF8)
             );
         }
@@ -604,6 +590,23 @@ public sealed class SourceGeneratorTestBuilder<TSourceGenerator, TVerifier>
             / typeof(TSourceGenerator).Assembly.GetName().Name
             / typeof(TSourceGenerator).FullName
             / hintName;
+    }
+
+    private string ExpandVariables(ITestCase testCase, string text)
+    {
+        // Avoid allocating a new copy just to add this special case
+        text = text.Replace("$(TestName)", testCase.Name);
+
+        foreach (var property in this.properties)
+        {
+            text = text.Replace($"$({property.Key})", property.Value?.ToString() ?? string.Empty);
+        }
+        foreach (var property in testCase.Properties)
+        {
+            text = text.Replace($"$({property.Key})", property.Value?.ToString() ?? string.Empty);
+        }
+
+        return text;
     }
 
     private static string GetTestFilePath(string? directory, string fileName)

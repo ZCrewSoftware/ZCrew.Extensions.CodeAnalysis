@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests.TestDoubles;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests;
@@ -11,8 +10,6 @@ public class SourceGeneratorTestBuilderTests
     {
         return Path.Combine(typeof(TGenerator).Assembly.GetName().Name!, typeof(TGenerator).FullName!, hintName);
     }
-
-    // --- Configuration is applied to the built test ---
 
     [Fact]
     public async Task WithReferenceAssemblies_ShouldSetReferenceAssemblies()
@@ -85,8 +82,6 @@ public class SourceGeneratorTestBuilderTests
         Assert.Contains("CS9999", test.DisabledDiagnostics);
     }
 
-    // --- Generated source path resolution ---
-
     [Fact]
     public async Task WithGeneratedSource_ShouldResolveToDefaultGeneratedPath()
     {
@@ -135,8 +130,6 @@ public class SourceGeneratorTestBuilderTests
         Assert.Contains(PostInitializationGenerator.Content, content.ToString());
     }
 
-    // --- Immutability (fork-on-write) ---
-
     [Fact]
     public async Task WithDisabledDiagnostic_ShouldNotMutateOriginalBuilder()
     {
@@ -153,8 +146,6 @@ public class SourceGeneratorTestBuilderTests
         Assert.Equal(["CS0001"], baseTest.DisabledDiagnostics);
         Assert.Equal(["CS0001", "CS0002"], forkedTest.DisabledDiagnostics);
     }
-
-    // --- Content transforms applied when loading files ---
 
     [Fact]
     public async Task WithVariable_ShouldReplaceTokenInSourceContent()
@@ -181,12 +172,12 @@ public class SourceGeneratorTestBuilderTests
     }
 
     [Fact]
-    public async Task WithContentTransform_ShouldApplyTransformsInRegistrationOrder()
+    public async Task BuildAsync_ShouldExpandTestNameTokenInSourceContent()
     {
         // Arrange
         using var temp = new TempDirectory();
-        temp.WriteFile("Source.cs", "a");
-        var testCase = new TestCase
+        temp.WriteFile("Source.cs", "class $(TestName) { }");
+        var testCase = new TestCase("MyTest")
         {
             Directory = temp.DirectoryPath,
             SourceFiles = [new TestSourceFile { SourceFileName = "Source.cs" }],
@@ -195,16 +186,112 @@ public class SourceGeneratorTestBuilderTests
         // Act
         var test = await SourceGeneratorTestBuilder<EmptyGenerator>
             .Create()
-            .WithContentTransform(content => content.Replace("a", "b"))
-            .WithContentTransform(content => content.Replace("b", "c"))
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
-        var (_, transformed) = Assert.Single(test.TestState.Sources);
-        Assert.Equal("c", transformed.ToString());
+        var (_, content) = Assert.Single(test.TestState.Sources);
+        Assert.Equal("class MyTest { }", content.ToString());
     }
 
-    // --- BuildAsync file loading and errors ---
+    [Fact]
+    public async Task BuildAsync_ShouldExpandTestNameTokenInSourceFileName()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        temp.WriteFile("MyTest.Source.cs", "// content");
+        var testCase = new TestCase("MyTest")
+        {
+            Directory = temp.DirectoryPath,
+            SourceFiles = [new TestSourceFile { SourceFileName = "$(TestName).Source.cs" }],
+        };
+
+        // Act
+        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert
+        var (filename, content) = Assert.Single(test.TestState.Sources);
+        Assert.Equal("MyTest.Source.cs", filename);
+        Assert.Equal("// content", content.ToString());
+    }
+
+    [Fact]
+    public async Task BuildAsync_ShouldExpandTestNameTokenInGeneratedFileNames()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        temp.WriteFile("MyTest.Expected.g.cs", "// expected");
+        var testCase = new TestCase("MyTest")
+        {
+            Directory = temp.DirectoryPath,
+            GeneratedFiles =
+            [
+                new TestGeneratedFile
+                {
+                    SourceFileName = "$(TestName).Expected.g.cs",
+                    GeneratedFileName = "$(TestName).g.cs",
+                },
+            ],
+        };
+
+        // Act
+        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert
+        var (filename, content) = Assert.Single(test.TestState.GeneratedSources);
+        Assert.Equal(ExpectedGeneratedPath<EmptyGenerator>("MyTest.g.cs"), filename);
+        Assert.Equal("// expected", content.ToString());
+    }
+
+    [Fact]
+    public async Task BuildAsync_ShouldExpandTestCasePropertyTokenInSourceContent()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        temp.WriteFile("Source.cs", "class $(Name) { }");
+        var testCase = new TestCase
+        {
+            Directory = temp.DirectoryPath,
+            SourceFiles = [new TestSourceFile { SourceFileName = "Source.cs" }],
+            Properties = new Dictionary<string, object> { ["Name"] = "Foo" },
+        };
+
+        // Act
+        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert
+        var (_, content) = Assert.Single(test.TestState.Sources);
+        Assert.Equal("class Foo { }", content.ToString());
+    }
+
+    [Fact]
+    public async Task BuildAsync_WhenBuilderAndTestCaseDefineSameVariable_ShouldPreferBuilderVariable()
+    {
+        // Arrange
+        using var temp = new TempDirectory();
+        temp.WriteFile("Source.cs", "class $(Name) { }");
+        var testCase = new TestCase
+        {
+            Directory = temp.DirectoryPath,
+            SourceFiles = [new TestSourceFile { SourceFileName = "Source.cs" }],
+            Properties = new Dictionary<string, object> { ["Name"] = "FromTestCase" },
+        };
+
+        // Act
+        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+            .Create()
+            .WithVariable("Name", "FromBuilder")
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+
+        // Assert
+        var (_, content) = Assert.Single(test.TestState.Sources);
+        Assert.Equal("class FromBuilder { }", content.ToString());
+    }
 
     [Fact]
     public async Task BuildAsync_ShouldLoadGeneratedFileAtResolvedPath()
