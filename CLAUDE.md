@@ -53,7 +53,14 @@ dotnet tool run CSharpier format
 
 ## Architecture
 
-### Source Generator Pipeline (`src/ZCrew.Extensions.CodeAnalysis.CSharp/`)
+### Project Split (three projects, one package)
+
+- **`src/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions/`** — the runtime library (`AttributeConstructor<>`, `FormattedStringBuilder`, `EquatableArray<T>`, extensions). Namespaces stay `ZCrew.Extensions.CodeAnalysis.CSharp`; only the assembly carries the suffix. Deliberately contains **no `[Generator]` types**: downstream packages redistribute this DLL in their `analyzers/dotnet/cs`, where any generator would activate in end-consumer compilations and fail to compile (see `docs/embedded-attribute-consumer-leak.md`). Enforced by `LibraryAssemblyTests`.
+- **`src/ZCrew.Extensions.CodeAnalysis.CSharp.Generators/`** — the incremental generators (`EmbeddedAttributeIncrementalGenerator`, `IsTypeIncrementalGenerator`) plus their factories/models/emitters. ProjectReferences Abstractions; ships only under `analyzers/dotnet/cs`.
+- **`src/ZCrew.Extensions.CodeAnalysis.CSharp/`** — packaging-only project (no code) that authors the single nupkg: Abstractions in `lib/`, both assemblies in `analyzers/dotnet/cs`, plus `build/*.targets` that auto-pack Abstractions into downstream authors' packages and forward it to their analyzer-ProjectReference consumers via a `GetTargetPath` hook.
+- **deps.json traps** (each broke the test hosts with `FileNotFoundException` during development): do not give any project a `PackageId` matching another project's assembly name; do not put `PrivateAssets="all"` on a ProjectReference edge that test projects also reference directly; do not add a `GetTargetPathDependsOn` hook to a project consumed via plain ProjectReference. The three-project layout exists precisely so none of these are needed — the suppressed edges live only in the packaging project, which nothing else references.
+
+### Source Generator Pipeline (`src/ZCrew.Extensions.CodeAnalysis.CSharp.Generators/`)
 
 The entry point is `EmbeddedAttributeIncrementalGenerator` — an `IIncrementalGenerator` that processes types marked with `[EmbeddedAttribute]`. It runs in two phases:
 

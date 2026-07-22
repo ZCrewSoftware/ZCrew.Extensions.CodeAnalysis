@@ -1,0 +1,23 @@
+<Project>
+  <!-- Imported into every project that directly references the ZCrew.Extensions.CodeAnalysis.CSharp package -->
+
+  <!-- Pack the Abstractions assembly into the author's analyzers folder -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)../analyzers/dotnet/cs/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false" />
+  </ItemGroup>
+
+  <!-- Forward the Abstractions assembly to consumers that reference the author's generator project with
+       OutputItemType="Analyzer" -->
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);_ZCrewAppendAbstractionsToTargetPath</GetTargetPathDependsOn>
+  </PropertyGroup>
+  <Target Name="_ZCrewAppendAbstractionsToTargetPath">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)../analyzers/dotnet/cs/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll"
+                                           IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target>
+</Project>

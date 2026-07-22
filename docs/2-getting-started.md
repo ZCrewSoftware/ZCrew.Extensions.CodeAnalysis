@@ -2,17 +2,19 @@
 
 ## Installation
 
-Add the NuGet package to your source generator project. Since this is an analyzer dependency, configure it with `OutputItemType` and `ReferenceOutputAssembly`:
+Add the NuGet package to your source generator project:
 
 ```xml
 <ItemGroup>
     <PackageReference Include="ZCrew.Extensions.CodeAnalysis.CSharp">
-        <PrivateAssets>analyzers</PrivateAssets>
+        <PrivateAssets>all</PrivateAssets>
     </PackageReference>
 </ItemGroup>
 ```
 
 Your source generator project must target `netstandard2.0` (a Roslyn requirement).
+
+This package's runtime assembly travels with your generator automatically: it is added to your package's `analyzers/dotnet/cs` when you pack, and forwarded to projects that reference your generator project as an analyzer. No extra configuration is needed.
 
 ## Namespaces
 

@@ -17,7 +17,7 @@ internal static class GeneratorTest
             .WithAdditionalReferences("Microsoft.CodeAnalysis.dll")
             .WithAdditionalReferences("Microsoft.CodeAnalysis.CSharp.dll")
             .WithAdditionalReferences("Microsoft.CodeAnalysis.CSharp.Workspaces.dll")
-            .WithAdditionalReferences("ZCrew.Extensions.CodeAnalysis.CSharp.dll")
+            .WithAdditionalReferences("ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll")
             .WithCompilerDiagnostics(CompilerDiagnostics.All)
             // Disable the warning on the source files about missing XML comments
             .WithDisabledDiagnostics("CS1591")
@@ -39,7 +39,7 @@ internal static class GeneratorTest
             .WithAdditionalReferences("Microsoft.CodeAnalysis.dll")
             .WithAdditionalReferences("Microsoft.CodeAnalysis.CSharp.dll")
             .WithAdditionalReferences("Microsoft.CodeAnalysis.CSharp.Workspaces.dll")
-            .WithAdditionalReferences("ZCrew.Extensions.CodeAnalysis.CSharp.dll")
+            .WithAdditionalReferences("ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll")
             .WithCompilerDiagnostics(CompilerDiagnostics.All)
             // Disable the warning on the source files about missing XML comments
             .WithDisabledDiagnostics("CS1591")
