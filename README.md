@@ -8,7 +8,7 @@ Available on NuGet for .NET Standard 2.0:
 
 ```xml
 <PackageReference Include="ZCrew.Extensions.CodeAnalysis.CSharp">
-    <PrivateAssets>analyzers</PrivateAssets>
+    <PrivateAssets>all</PrivateAssets>
 </PackageReference>
 ```
 
