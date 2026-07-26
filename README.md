@@ -66,8 +66,8 @@ internal static partial class SymbolChecks
 }
 ```
 
-The generated body walks the symbol's `Name`/`ContainingNamespace` chain (or uses `SpecialType` for well-known types like `System.IDisposable`) instead of slower `ToDisplayString()` comparisons, and doubles as a null check. See [Fast Type Checks](docs/6-is-type-checks.md) for details.
+The generated body walks the symbol's `Name`/`ContainingNamespace` chain (or uses `SpecialType` for well-known types like `System.IDisposable`) instead of slower `ToDisplayString()` comparisons, and doubles as a null check. See [Fast Type Checks](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/6-is-type-checks.md) for details.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/LICENSE.md) file for details.

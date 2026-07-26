@@ -25,8 +25,23 @@ internal sealed class PostInitializationGenerator : IIncrementalGenerator
 }
 
 /// <summary>
+///     A second incremental generator registering its own post-initialization source, so tests can register two
+///     generators at once and tell their output apart.
+/// </summary>
+internal sealed class SecondPostInitializationGenerator : IIncrementalGenerator
+{
+    public const string HintName = "Test.SecondPostInit.g.cs";
+    public const string Content = "// second post-init";
+
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        context.RegisterPostInitializationOutput(static ctx => ctx.AddSource(HintName, Content));
+    }
+}
+
+/// <summary>
 ///     An incremental generator that counts how many times it is constructed. Used to verify the post-initialization
-///     capture caches per generator type. Reference it from exactly one test so <see cref="ConstructionCount" /> stays
+///     capture caches per generator. Reference it from exactly one test so <see cref="ConstructionCount" /> stays
 ///     isolated.
 /// </summary>
 internal sealed class CountingGenerator : IIncrementalGenerator
@@ -45,7 +60,21 @@ internal sealed class CountingGenerator : IIncrementalGenerator
 }
 
 /// <summary>
-///     A type that satisfies the <c>new()</c> constraint but is neither an <see cref="IIncrementalGenerator" /> nor an
-///     <see cref="ISourceGenerator" />.
+///     A non-incremental <see cref="ISourceGenerator" />, covering the obsolete generator path. No
+///     <c>[Generator]</c> attribute: the test harness is handed the type directly, and the attribute would trip the
+///     Roslyn analyzer rules for real generator assemblies.
 /// </summary>
-internal sealed class NotAGenerator { }
+#pragma warning disable CS0618 // ISourceGenerator is obsolete; that is exactly what this double exercises.
+internal sealed class LegacySourceGenerator : ISourceGenerator
+{
+    public const string HintName = "Test.Legacy.g.cs";
+    public const string Content = "// legacy";
+
+    public void Initialize(GeneratorInitializationContext context)
+    {
+        context.RegisterForPostInitialization(ctx => ctx.AddSource(HintName, Content));
+    }
+
+    public void Execute(GeneratorExecutionContext context) { }
+}
+#pragma warning restore CS0618

@@ -7,7 +7,7 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "GlobalNamespaceType.Generated.g.cs",
-            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsGlobalType.g.cs"
+            "GeneratedFileName": "$(IsTypeIncrementalGenerator)/IsTypeTests.SymbolChecks.IsGlobalType.g.cs"
         }
     ]
 }

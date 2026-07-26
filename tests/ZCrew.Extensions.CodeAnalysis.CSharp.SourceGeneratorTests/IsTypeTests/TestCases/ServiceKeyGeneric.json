@@ -7,7 +7,7 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "ServiceKeyGeneric.Generated.g.cs",
-            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsServiceKeyAttribute.g.cs"
+            "GeneratedFileName": "$(IsTypeIncrementalGenerator)/IsTypeTests.SymbolChecks.IsServiceKeyAttribute.g.cs"
         }
     ]
 }

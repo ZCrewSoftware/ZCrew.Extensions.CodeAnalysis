@@ -5,7 +5,8 @@ namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 
 /// <summary>
 ///     A small immutable path helper that composes relative paths via the <c>/</c> operator and converts implicitly
-///     to and from <see cref="string" />.
+///     to and from <see cref="string" />. Every segment is normalized to the current platform's directory separator,
+///     so paths written with <c>/</c> work on Windows too.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(path)}}}")]
 public readonly struct TestPath
@@ -24,7 +25,7 @@ public readonly struct TestPath
     ///     An empty path.
     /// </summary>
     /// <remarks>
-    ///     This can be useful when you want to avoid starting a path without the <see cref="CurrentDirectory" />.
+    ///     Use this to start a relative path that should not be prefixed with the <see cref="CurrentDirectory" />.
     /// </remarks>
     public static readonly TestPath Empty = new("");
 
@@ -47,20 +48,21 @@ public readonly struct TestPath
         return new TestPath(Path.GetDirectoryName(callerFilePath)!);
     }
 
-    private readonly string path;
+    private readonly string path = ".";
 
     /// <summary>
-    ///     Creates a <see cref="TestPath" /> wrapping the given <paramref name="path" />.
+    ///     Creates a <see cref="TestPath" /> wrapping the given <paramref name="path" />, normalized to the current
+    ///     platform's directory separator.
     /// </summary>
     /// <param name="path">The path value to wrap.</param>
     public TestPath(string path)
     {
-        this.path = path;
+        this.path = NormalizeSeparators(path);
     }
 
     private TestPath(TestPath path1, string path2)
     {
-        this.path = Path.Combine(path1.path, path2);
+        this.path = Path.Combine(path1.path, NormalizeSeparators(path2));
     }
 
     /// <summary>
@@ -82,7 +84,7 @@ public readonly struct TestPath
     }
 
     /// <summary>
-    ///     Combines <paramref name="path1" /> with the <paramref name="path2" /> segment using
+    ///     Combines <paramref name="path1" /> with the normalized <paramref name="path2" /> segment using
     ///     <see cref="System.IO.Path.Combine(string, string)" />.
     /// </summary>
     /// <param name="path1">The base path.</param>
@@ -91,5 +93,16 @@ public readonly struct TestPath
     public static TestPath operator /(TestPath path1, string path2)
     {
         return new TestPath(path1, path2);
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return this.path;
+    }
+
+    private static string NormalizeSeparators(string path)
+    {
+        return path.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
     }
 }

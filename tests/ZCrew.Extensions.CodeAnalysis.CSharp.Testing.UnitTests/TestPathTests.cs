@@ -38,13 +38,45 @@ public class TestPathTests
     public void ImplicitConversion_ShouldRoundTripValue()
     {
         // Arrange
-        TestPath path = "some/value";
+        TestPath path = "value";
 
         // Act
         string value = path;
 
         // Assert
-        Assert.Equal("some/value", value);
+        Assert.Equal("value", value);
+    }
+
+    [Theory]
+    [InlineData("some/value")]
+    [InlineData("some\\value")]
+    public void Constructor_ShouldNormalizeSeparators(string value)
+    {
+        // Act
+        string path = new TestPath(value);
+
+        // Assert
+        Assert.Equal(Path.Combine("some", "value"), path);
+    }
+
+    [Fact]
+    public void DivideOperator_ShouldNormalizeSeparatorsInTheSegment()
+    {
+        // Act
+        string path = TestPath.Empty / "a/b";
+
+        // Assert
+        Assert.Equal(Path.Combine("a", "b"), path);
+    }
+
+    [Fact]
+    public void ToString_ShouldReturnTheUnderlyingValue()
+    {
+        // Act
+        var path = new TestPath("a") / "b";
+
+        // Assert
+        Assert.Equal(Path.Combine("a", "b"), path.ToString());
     }
 
     [Fact]
