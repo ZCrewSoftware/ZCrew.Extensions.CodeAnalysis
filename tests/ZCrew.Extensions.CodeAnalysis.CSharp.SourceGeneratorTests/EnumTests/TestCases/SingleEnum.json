@@ -7,7 +7,7 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "SingleEnum.SourceText.g.cs",
-            "GeneratedFileName": "EnumTests.TestEnumSourceText.g.cs"
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/EnumTests.TestEnumSourceText.g.cs"
         }
     ]
 }

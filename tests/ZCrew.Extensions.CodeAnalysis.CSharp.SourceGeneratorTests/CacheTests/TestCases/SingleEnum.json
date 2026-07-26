@@ -7,7 +7,7 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "$(TestName).SourceText.g.cs",
-            "GeneratedFileName": "CacheTests.TestEnumSourceText.g.cs"
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/CacheTests.TestEnumSourceText.g.cs"
         }
     ]
 }

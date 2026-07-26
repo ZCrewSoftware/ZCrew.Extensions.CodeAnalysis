@@ -7,7 +7,7 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "NestedGeneric.Generated.g.cs",
-            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsTask.g.cs"
+            "GeneratedFileName": "$(IsTypeIncrementalGenerator)/IsTypeTests.SymbolChecks.IsTask.g.cs"
         }
     ]
 }

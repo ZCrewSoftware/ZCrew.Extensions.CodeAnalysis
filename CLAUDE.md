@@ -1,4 +1,4 @@
-N# CLAUDE.md
+# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -82,11 +82,11 @@ The generation pipeline flows through:
 
 **Unit Tests** (`tests/.../UnitTests/`): Standard xUnit v3 tests for utility classes.
 
-**Source Generator Tests** (`tests/.../SourceGeneratorTests/`): Use Roslyn's `CSharpSourceGeneratorTest` infrastructure with a JSON-driven test case pattern:
+**Source Generator Tests** (`tests/.../SourceGeneratorTests/`): Use the `ZCrew.Extensions.CodeAnalysis.CSharp.Testing` library (`RoslynTestBuilder` → `RoslynTest`, built on Roslyn's `AnalyzerTest`) with a JSON-driven test case pattern:
 - Each test case has a `.json` descriptor listing source files (`.Attribute.cs`) and expected generated files (`.g.cs`)
+- `GeneratedFileName` is the full path Roslyn emits, qualified with a per-generator variable, e.g. `$(IsTypeIncrementalGenerator)/Ns.Type.g.cs`
 - The `.cs` files in `TestCases/` folders are excluded from compilation (`<Compile Remove>`) and treated as content files
-- `TestCase.FromJsonFileAsync()` loads the descriptor; `EmbeddedAttributeIncrementalGeneratorTest.ForTestCaseAsync()` sets up the Roslyn test harness
-- The main library exposes internals to the source generator test project via `InternalsVisibleTo`
+- `JsonTestCase.FromJsonFileAsync()` loads the descriptor; the shared baselines in `TestHelpers/GeneratorTest.cs` set up the Roslyn test harness
 
 ## Key Conventions
 

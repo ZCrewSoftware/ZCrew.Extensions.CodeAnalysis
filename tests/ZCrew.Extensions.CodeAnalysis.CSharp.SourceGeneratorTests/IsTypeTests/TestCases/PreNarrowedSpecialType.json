@@ -7,7 +7,7 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "PreNarrowedSpecialType.Generated.g.cs",
-            "GeneratedFileName": "IsTypeTests.SymbolChecks.IsDisposable.g.cs"
+            "GeneratedFileName": "$(IsTypeIncrementalGenerator)/IsTypeTests.SymbolChecks.IsDisposable.g.cs"
         }
     ]
 }

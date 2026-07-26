@@ -12,8 +12,8 @@
 
   <!-- NuGet package metadata -->
   <PropertyGroup>
-    <PackageTags>roslyn;source-generator;code-analysis;testing</PackageTags>
-    <Description>Source generator testing library to help test source generators</Description>
+    <PackageTags>roslyn;source-generator;analyzer;code-analysis;testing</PackageTags>
+    <Description>Testing library to help test Roslyn source generators and diagnostic analyzers</Description>
   </PropertyGroup>
 
   <!-- NuGet package content -->

@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests.TestDoubles;
@@ -8,12 +7,12 @@ using ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests.TestDoubles;
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests;
 
 [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
-public class SourceGeneratorTestBuilderTests
+public class RoslynTestBuilderTests
 {
     // A source whose newlines are explicit '\n' so line/column assertions do not depend on the file's line endings
     private const string SnippetSource = "class Sample\n{\n    Undefined Value;\n}\n";
 
-    private static async Task<CSharpSourceGeneratorTest<EmptyGenerator, DefaultVerifier>> BuildWithSourceAsync(
+    private static async Task<RoslynTest<DefaultVerifier>> BuildWithSourceAsync(
         TempDirectory temp,
         string sourceContent,
         TestExpectedDiagnostic expected,
@@ -27,8 +26,9 @@ public class SourceGeneratorTestBuilderTests
             SourceFiles = [new TestSourceFile { SourceFileName = "Source.cs", ExpectedDiagnostics = [expected] }],
         };
 
-        return await SourceGeneratorTestBuilder<EmptyGenerator>
+        return await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
     }
 
@@ -44,8 +44,9 @@ public class SourceGeneratorTestBuilderTests
         var referenceAssemblies = ReferenceAssemblies.Net.Net100;
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .WithReferenceAssemblies(referenceAssemblies)
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
 
@@ -58,8 +59,9 @@ public class SourceGeneratorTestBuilderTests
     {
         // Act
         // The framework resolves these eagerly, so they must be real assemblies present in the test output.
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .WithAdditionalReferences("Microsoft.CodeAnalysis.dll", "Microsoft.CodeAnalysis.CSharp.dll")
             .WithAdditionalReference("Microsoft.CodeAnalysis.CSharp.Workspaces.dll")
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
@@ -72,8 +74,9 @@ public class SourceGeneratorTestBuilderTests
     public async Task WithCompilerDiagnostics_ShouldSetCompilerDiagnostics()
     {
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .WithCompilerDiagnostics(CompilerDiagnostics.All)
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
 
@@ -85,8 +88,9 @@ public class SourceGeneratorTestBuilderTests
     public async Task WithDisabledDiagnostics_ShouldAccumulateAllDiagnosticIds()
     {
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .WithDisabledDiagnostics("CS0001", "CS0002")
             .WithDisabledDiagnostic("CS0003")
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
@@ -99,8 +103,9 @@ public class SourceGeneratorTestBuilderTests
     public async Task WithConfiguration_ShouldRunActionAgainstBuiltTest()
     {
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .WithConfiguration(t => t.DisabledDiagnostics.Add("CS9999"))
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
 
@@ -109,12 +114,13 @@ public class SourceGeneratorTestBuilderTests
     }
 
     [Fact]
-    public async Task WithGeneratedSource_ShouldResolveToDefaultGeneratedPath()
+    public async Task WithGeneratedSource_ForGenerator_ShouldResolveToDefaultGeneratedPath()
     {
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
-            .WithGeneratedSource("Foo.g.cs", SourceText.From("// foo"))
+            .WithGenerator<EmptyGenerator>()
+            .WithGeneratedSource<EmptyGenerator>("Foo.g.cs", SourceText.From("// foo"))
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
 
         // Assert
@@ -124,13 +130,13 @@ public class SourceGeneratorTestBuilderTests
     }
 
     [Fact]
-    public async Task WithGeneratedFilePathResolver_ShouldOverridePathMapping()
+    public async Task WithGeneratedSource_ShouldUseTheFileNameVerbatim()
     {
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
-            .WithGeneratedFilePathResolver(hintName => "custom/" + hintName)
-            .WithGeneratedSource("Foo.g.cs", SourceText.From("// foo"))
+            .WithGenerator<EmptyGenerator>()
+            .WithGeneratedSource("custom/Foo.g.cs", SourceText.From("// foo"))
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
 
         // Assert
@@ -142,8 +148,9 @@ public class SourceGeneratorTestBuilderTests
     public async Task WithGeneratorPostInitializationSources_ShouldAddCapturedSources()
     {
         // Act
-        var test = await SourceGeneratorTestBuilder<PostInitializationGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<PostInitializationGenerator>()
             .WithGeneratorPostInitializationSources()
             .BuildAsync(new TestCase(), TestContext.Current.CancellationToken);
 
@@ -160,7 +167,7 @@ public class SourceGeneratorTestBuilderTests
     public async Task WithDisabledDiagnostic_ShouldNotMutateOriginalBuilder()
     {
         // Arrange
-        var baseBuilder = SourceGeneratorTestBuilder<EmptyGenerator>.Create().WithDisabledDiagnostic("CS0001");
+        var baseBuilder = RoslynTestBuilder.Create().WithGenerator<EmptyGenerator>().WithDisabledDiagnostic("CS0001");
 
         // Act
         var forkedBuilder = baseBuilder.WithDisabledDiagnostic("CS0002");
@@ -186,8 +193,9 @@ public class SourceGeneratorTestBuilderTests
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .WithVariable("Name", "Foo")
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
@@ -210,8 +218,9 @@ public class SourceGeneratorTestBuilderTests
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
@@ -232,8 +241,9 @@ public class SourceGeneratorTestBuilderTests
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
@@ -256,14 +266,15 @@ public class SourceGeneratorTestBuilderTests
                 new TestGeneratedFile
                 {
                     SourceFileName = "$(TestName).Expected.g.cs",
-                    GeneratedFileName = "$(TestName).g.cs",
+                    GeneratedFileName = "$(EmptyGenerator)/$(TestName).g.cs",
                 },
             ],
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
@@ -286,8 +297,9 @@ public class SourceGeneratorTestBuilderTests
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
@@ -296,9 +308,9 @@ public class SourceGeneratorTestBuilderTests
     }
 
     [Fact]
-    public async Task BuildAsync_WhenBuilderAndTestCaseDefineSameVariable_ShouldPreferBuilderVariable()
+    public async Task BuildAsync_WhenBuilderAndTestCaseDefineSameVariable_ShouldPreferTestCaseVariable()
     {
-        // Arrange
+        // Arrange — the builder is the shared baseline, so an individual test case gets to override it.
         using var temp = new TempDirectory();
         temp.WriteFile("Source.cs", "class $(Name) { }");
         var testCase = new TestCase
@@ -309,20 +321,21 @@ public class SourceGeneratorTestBuilderTests
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .WithVariable("Name", "FromBuilder")
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
         var (_, content) = Assert.Single(test.TestState.Sources);
-        Assert.Equal("class FromBuilder { }", content.ToString());
+        Assert.Equal("class FromTestCase { }", content.ToString());
     }
 
     [Fact]
     public async Task BuildAsync_ShouldLoadGeneratedFileAtResolvedPath()
     {
-        // Arrange
+        // Arrange — the generator's variable expands to the directory Roslyn emits its sources into.
         using var temp = new TempDirectory();
         temp.WriteFile("Expected.g.cs", "// expected");
         var testCase = new TestCase
@@ -330,13 +343,18 @@ public class SourceGeneratorTestBuilderTests
             Directory = temp.DirectoryPath,
             GeneratedFiles =
             [
-                new TestGeneratedFile { SourceFileName = "Expected.g.cs", GeneratedFileName = "Source.g.cs" },
+                new TestGeneratedFile
+                {
+                    SourceFileName = "Expected.g.cs",
+                    GeneratedFileName = "$(EmptyGenerator)/Source.g.cs",
+                },
             ],
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
@@ -358,8 +376,9 @@ public class SourceGeneratorTestBuilderTests
 
         // Act
         var act = async () =>
-            await SourceGeneratorTestBuilder<EmptyGenerator>
+            await RoslynTestBuilder
                 .Create()
+                .WithGenerator<EmptyGenerator>()
                 .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
@@ -381,7 +400,8 @@ public class SourceGeneratorTestBuilderTests
         await cts.CancelAsync();
 
         // Act
-        var act = async () => await SourceGeneratorTestBuilder<EmptyGenerator>.Create().BuildAsync(testCase, cts.Token);
+        var act = async () =>
+            await RoslynTestBuilder.Create().WithGenerator<EmptyGenerator>().BuildAsync(testCase, cts.Token);
 
         // Assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(act);
@@ -510,8 +530,9 @@ public class SourceGeneratorTestBuilderTests
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert — each diagnostic points at its own file.
@@ -536,15 +557,16 @@ public class SourceGeneratorTestBuilderTests
                 new TestGeneratedFile
                 {
                     SourceFileName = "Expected.g.cs",
-                    GeneratedFileName = "Gen.g.cs",
+                    GeneratedFileName = "$(EmptyGenerator)/Gen.g.cs",
                     ExpectedDiagnostics = [new TestExpectedDiagnostic { Id = "CS0246", Snippet = "Broken" }],
                 },
             ],
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert — the location resolves against the generated file's resolved hint-name path.
@@ -566,8 +588,9 @@ public class SourceGeneratorTestBuilderTests
         };
 
         // Act
-        var test = await SourceGeneratorTestBuilder<EmptyGenerator>
+        var test = await RoslynTestBuilder
             .Create()
+            .WithGenerator<EmptyGenerator>()
             .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert
@@ -589,8 +612,9 @@ public class SourceGeneratorTestBuilderTests
 
         // Act
         var act = async () =>
-            await SourceGeneratorTestBuilder<EmptyGenerator>
+            await RoslynTestBuilder
                 .Create()
+                .WithGenerator<EmptyGenerator>()
                 .BuildAsync(testCase, TestContext.Current.CancellationToken);
 
         // Assert

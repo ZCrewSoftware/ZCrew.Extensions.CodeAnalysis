@@ -1,0 +1,9 @@
+# The generators and analyzers here are test doubles fed directly to the test harness, not shipping compiler
+# extensions, so the analyzer-authoring rules do not apply.
+[*.cs]
+dotnet_diagnostic.RS1001.severity = none
+dotnet_diagnostic.RS1036.severity = none
+dotnet_diagnostic.RS1038.severity = none
+dotnet_diagnostic.RS1041.severity = none
+dotnet_diagnostic.RS1042.severity = none
+dotnet_diagnostic.RS2008.severity = none
