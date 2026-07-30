@@ -1,0 +1,17 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "ArrayAndTypeParameters.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "ArrayAndTypeParameters.AttributeData.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "ArrayAndTypeParameters.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}

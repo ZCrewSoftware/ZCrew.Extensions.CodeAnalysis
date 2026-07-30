@@ -13,6 +13,12 @@ public class AttributeTests
     [InlineData("MultipleParameters.json")]
     [InlineData("MultipleConstructors.json")]
     [InlineData("All.json")]
+    [InlineData("PartialConstructors.json")]
+    [InlineData("RequiredNamedProperty.json")]
+    [InlineData("SetsRequiredMembers.json")]
+    [InlineData("NullableParameter.json")]
+    [InlineData("ArrayAndTypeParameters.json")]
+    [InlineData("ReservedNames.json")]
     public async Task EmbeddedAttribute_WithReplaceAction_ShouldGenerateCodeToReplaceServices(string testDescriptor)
     {
         // Arrange

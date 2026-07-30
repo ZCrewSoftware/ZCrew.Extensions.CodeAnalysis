@@ -9,19 +9,36 @@ namespace ZCrew.Extensions.CodeAnalysis.CSharp;
 /// </summary>
 public static class SymbolExtensions
 {
-    private static readonly SymbolDisplayFormat genericTypeFormat = new(
-        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces
+    /// <summary>
+    ///     Fully-qualified format including global namespaces, nullable annotations, used for emitted signature text.
+    /// </summary>
+    private static readonly SymbolDisplayFormat GlobalNameEmit =
+        SymbolDisplayFormat.FullyQualifiedFormat.WithMiscellaneousOptions(
+            SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions
+                | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+        );
+
+    /// <summary>
+    ///     Fully-qualified format including nullable annotations, used for emitted signature text.
+    /// </summary>
+    private static readonly SymbolDisplayFormat FullyQualifiedNameEmit = GlobalNameEmit.WithGlobalNamespaceStyle(
+        SymbolDisplayGlobalNamespaceStyle.Omitted
     );
 
-    private static readonly SymbolDisplayFormat nonGenericTypeFormat = new(
-        genericsOptions: SymbolDisplayGenericsOptions.None,
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces
+    /// <summary>
+    ///     Fully-qualified format including global namespaces, without nullable annotations at any nesting level,
+    ///     used to match a declared type against a <see cref="TypedConstant.Type"/>.
+    /// </summary>
+    private static readonly SymbolDisplayFormat GlobalNameMatch = SymbolDisplayFormat.FullyQualifiedFormat;
+
+    /// <summary>
+    ///     Fully-qualified format without nullable annotations, used for type matching.
+    /// </summary>
+    private static readonly SymbolDisplayFormat FullyQualifiedNameMatch = GlobalNameMatch.WithGlobalNamespaceStyle(
+        SymbolDisplayGlobalNamespaceStyle.Omitted
     );
 
-    private static readonly SymbolDisplayFormat methodDeclarationPostPartialFormat = new(
+    private static readonly SymbolDisplayFormat MethodDeclarationPostPartialFormat = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
         genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
@@ -39,7 +56,7 @@ public static class SymbolExtensions
             | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
     );
 
-    private static readonly SymbolDisplayFormat classDeclarationFormat = new(
+    private static readonly SymbolDisplayFormat ClassDeclarationFormat = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
         genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
@@ -60,6 +77,9 @@ public static class SymbolExtensions
         /// <example>
         ///     <list type="numbered">
         ///         <item>
+        ///             <description><c>string</c></description>
+        ///         </item>
+        ///         <item>
         ///             <description><c>System.Collections.Generic.List&lt;string&gt;</c></description>
         ///         </item>
         ///         <item>
@@ -67,88 +87,22 @@ public static class SymbolExtensions
         ///         </item>
         ///     </list>
         /// </example>
-        public string ToGenericTypeName(bool globalUsings = false)
+        /// <param name="globalUsings">Whether to qualify the name with <c>global::</c>.</param>
+        /// <param name="nullableAnnotations">
+        ///     Whether to include nullable reference annotations. Pass <see langword="false"/> when comparing against
+        ///     a <see cref="TypedConstant.Type"/>, which is never annotated.
+        /// </param>
+        public string ToFullyQualifiedName(bool globalUsings = false, bool nullableAnnotations = true)
         {
-            var options = genericTypeFormat;
-            if (globalUsings)
+            var format = (globalUsings, nullableAnnotations) switch
             {
-                options = options.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included);
-            }
+                (true, true) => GlobalNameEmit,
+                (true, false) => GlobalNameMatch,
+                (false, true) => FullyQualifiedNameEmit,
+                (false, false) => FullyQualifiedNameMatch,
+            };
 
-            return symbol.ToDisplayString(options);
-        }
-
-        /// <summary>
-        ///     Gets a string representation of a <see cref="INamedTypeSymbol"/> without generic information and without
-        ///     the global namespace qualifier.
-        /// </summary>
-        /// <remarks>
-        ///     This can be useful for types with a varying number of generic type parameters, such as
-        ///     <see cref="Tuple"/>.
-        /// </remarks>
-        /// <returns>The type name.</returns>
-        /// <example>
-        ///     <list type="numbered">
-        ///         <item>
-        ///             <description><c>System.Collections.Generic.List</c></description>
-        ///         </item>
-        ///         <item>
-        ///             <description><c>System.Tuple</c></description>
-        ///         </item>
-        ///     </list>
-        /// </example>
-        public string ToNonGenericTypeName(bool globalUsings = false)
-        {
-            var options = nonGenericTypeFormat;
-            if (globalUsings)
-            {
-                options = options.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included);
-            }
-
-            return symbol.ToDisplayString(options);
-        }
-
-        /// <summary>
-        ///     Gets a string representation of a <see cref="INamedTypeSymbol"/> as an open generic type and with the
-        ///     global namespace qualifier.
-        /// </summary>
-        /// <returns>The type name.</returns>
-        /// <example>
-        ///     <list type="numbered">
-        ///         <item>
-        ///             <description><c>global::System.Collections.Generic.List&lt;&gt;</c></description>
-        ///         </item>
-        ///         <item>
-        ///             <description><c>global::System.Tuple&lt;,&gt;</c></description>
-        ///         </item>
-        ///     </list>
-        /// </example>
-        public string ToOpenGenericTypeName(bool globalUsings = false)
-        {
-            var options = nonGenericTypeFormat;
-            if (globalUsings)
-            {
-                options = options.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included);
-            }
-
-            var nonGenericTypeName = symbol.ToDisplayString(options);
-
-            // If this is a type symbol, the consider adding open generic parameters
-            if (symbol.Kind == SymbolKind.NamedType)
-            {
-                // Only add in the open generics if they are present
-                var namedTypeSymbol = (INamedTypeSymbol)symbol;
-                if (namedTypeSymbol.Arity > 0)
-                {
-                    // For N type parameters we need N-1 commas
-                    var commas = Enumerable.Repeat(',', namedTypeSymbol.Arity - 1).ToArray();
-
-                    // Creates type names like "Dictionary<,>"
-                    return $"{nonGenericTypeName}<{new string(commas)}>";
-                }
-            }
-
-            return nonGenericTypeName;
+            return symbol.ToDisplayString(format);
         }
 
         /// <summary>
@@ -174,8 +128,40 @@ public static class SymbolExtensions
             stringBuilder.Append("partial ");
 
             // Add the method name, parameters, constraints, etc.
-            stringBuilder.Append(symbol.ToDisplayString(methodDeclarationPostPartialFormat));
+            stringBuilder.Append(symbol.ToDisplayString(MethodDeclarationPostPartialFormat));
             return stringBuilder.ToString();
+        }
+
+        /// <summary>
+        ///     Matches a type's fully qualified metadata name against <paramref name="fullMetadataName"/>.
+        /// </summary>
+        /// <param name="fullMetadataName">The fully qualified metadata name.</param>
+        /// <returns>
+        ///     <see langword="true"/> if <paramref name="fullMetadataName"/> matches this <paramref name="symbol"/>'s
+        ///     metadata name.
+        /// </returns>
+        /// <example>
+        ///     <c>System.Collections.Generic.List`2</c>.
+        /// </example>
+        public bool HasFullMetadataName(string fullMetadataName)
+        {
+            var name = symbol.MetadataName;
+            var namespaceLength = fullMetadataName.Length - name.Length;
+            if (
+                namespaceLength < 0
+                || string.CompareOrdinal(fullMetadataName, namespaceLength, name, 0, name.Length) != 0
+            )
+            {
+                return false;
+            }
+
+            if (namespaceLength == 0)
+            {
+                return symbol.ContainingNamespace.IsGlobalNamespace;
+            }
+
+            return fullMetadataName[namespaceLength - 1] == '.'
+                && symbol.ContainingNamespace.ToDisplayString() == fullMetadataName[..(namespaceLength - 1)];
         }
 
         /// <summary>
@@ -199,7 +185,7 @@ public static class SymbolExtensions
             stringBuilder.Append("partial ");
 
             // Add type name, type parameters, etc.
-            stringBuilder.Append(symbol.ToDisplayString(classDeclarationFormat));
+            stringBuilder.Append(symbol.ToDisplayString(ClassDeclarationFormat));
             return stringBuilder.ToString();
         }
     }

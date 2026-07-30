@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <!-- Load the generator and its runtime dependency as analyzers so the IsType implementations are emitted into
-         this project -->
+    <!-- Load the generator and its runtime dependency as analyzers so the IsType and EmbeddedAttribute
+         implementations are emitted into this project -->
     <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp.Generators/ZCrew.Extensions.CodeAnalysis.CSharp.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- Referenced, not just loaded: the generated attribute parsing code derives from AttributeConstructor<> -->
+    <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
   </ItemGroup>
 
   <ItemGroup>

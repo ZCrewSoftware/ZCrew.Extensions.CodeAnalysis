@@ -1,0 +1,17 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "ReservedNames.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "ReservedNames.AttributeData.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "ReservedNames.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}

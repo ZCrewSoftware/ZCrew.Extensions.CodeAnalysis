@@ -2,17 +2,13 @@
 #nullable enable
 #pragma warning disable 0618, 1591, 8019
 
-using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
 namespace AttributeTests;
 
 [global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
-internal static class TestAttributeSourceText
+internal static partial class TestAttributeSourceText_2
 {
-    public static readonly SourceText SourceText = SourceText.From(
+    public static readonly global::Microsoft.CodeAnalysis.Text.SourceText SourceText = global::Microsoft.CodeAnalysis.Text.SourceText.From(
         """
         using System;
         
@@ -22,11 +18,11 @@ internal static class TestAttributeSourceText
         public class TestAttribute<TService, TImplementation> : Attribute { }
         
         """,
-        Encoding.UTF8
+        global::System.Text.Encoding.UTF8
     );
     
-    public static void AddTestAttributeDefinition(this IncrementalGeneratorPostInitializationContext context)
+    public static void AddTestAttribute_2_Definition(this global::Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext context)
     {
-        context.AddSource("AttributeTests.TestAttribute.g.cs", SourceText);
+        context.AddSource("AttributeTests.TestAttributeSourceText_2.g.cs", SourceText);
     }
 }

@@ -6,20 +6,12 @@
     ],
     "GeneratedFiles": [
         {
+            "SourceFileName": "MultipleParameters.AttributeData.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeData.g.cs"
+        },
+        {
             "SourceFileName": "MultipleParameters.SourceText.g.cs",
             "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleParameters.IDataBuilder.g.cs",
-            "GeneratedFileName": "AttributeTests.ITestAttributeDataBuilder.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleParameters.Constructor.g.cs",
-            "GeneratedFileName": "AttributeTests.TestAttributeConstructor.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleParameters.Parameter.g.cs",
-            "GeneratedFileName": "AttributeTests.TestAttributeParameter.g.cs"
         }
     ]
 }

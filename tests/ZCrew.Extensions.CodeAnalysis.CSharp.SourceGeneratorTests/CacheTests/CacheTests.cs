@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
+using ZCrew.Extensions.CodeAnalysis.CSharp.EmbeddedAbstractions;
 using ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.TestHelpers;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 

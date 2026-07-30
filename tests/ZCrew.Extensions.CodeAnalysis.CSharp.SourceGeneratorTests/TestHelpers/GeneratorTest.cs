@@ -1,4 +1,6 @@
 using Microsoft.CodeAnalysis.Testing;
+using ZCrew.Extensions.CodeAnalysis.CSharp.EmbeddedAbstractions;
+using ZCrew.Extensions.CodeAnalysis.CSharp.IsType;
 using ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.TestHelpers;
@@ -23,8 +25,7 @@ internal static class GeneratorTest
             .WithDisabledDiagnostics("CS1591")
             // All tests will emit the post-initialization sources (e.g. 'Microsoft.CodeAnalysis.EmbeddedAttribute')
             .WithGeneratorPostInitializationSources()
-            // Overwrite mismatched/missing expected files in place for review, but never on CI (writes only, the
-            // assertion still runs and fails regardless).
+            // Overwrite mismatched/missing expected files in place for review, except on CI
             .WithExpectedSourceUpdates(enabled: Environment.GetEnvironmentVariable("CI") is null);
 
     /// <summary>
@@ -45,7 +46,6 @@ internal static class GeneratorTest
             .WithDisabledDiagnostics("CS1591")
             // All tests will emit the post-initialization sources (e.g. the 'IsTypeAttribute' definition)
             .WithGeneratorPostInitializationSources()
-            // Overwrite mismatched/missing expected files in place for review, but never on CI (writes only, the
-            // assertion still runs and fails regardless).
+            // Overwrite mismatched/missing expected files in place for review, except on CI
             .WithExpectedSourceUpdates(enabled: Environment.GetEnvironmentVariable("CI") is null);
 }

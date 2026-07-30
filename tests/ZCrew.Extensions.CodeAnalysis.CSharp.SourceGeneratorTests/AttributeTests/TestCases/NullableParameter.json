@@ -1,0 +1,17 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "NullableParameter.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "NullableParameter.AttributeData.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "NullableParameter.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}

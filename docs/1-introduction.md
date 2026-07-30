@@ -8,15 +8,15 @@ The library supports two main workflows:
 
 ### SourceText Embedding
 
-Any C# type (enum, class, struct, record, interface) can be marked with `[Microsoft.CodeAnalysis.Embedded]`. The library generates a static `SourceText` property containing the type's source code, ready to be emitted into consuming projects via `PostInitializationOutput` or `RegisterSourceOutput`.
+Any C# type (enum, class, struct, record, interface) can be marked with `[Microsoft.CodeAnalysis.Embedded]`. The library generates a static `SourceText` field containing the type's source code, plus an `Add{Name}Definition()` extension method, ready to be emitted into consuming projects via `PostInitializationOutput` or `RegisterSourceOutput`.
 
 This is useful when your source generator needs to inject shared types (enums, marker interfaces, helper classes) into the projects that reference it.
 
 ### Attribute Parsing Pipeline
 
-For types that inherit from `System.Attribute`, the library goes further: it generates a complete infrastructure for parsing attribute usages at compile time. This includes constructor matching, parameter extraction, type parameter handling, and named argument processing -- all driven by a data builder pattern.
+For types that inherit from `System.Attribute`, the library goes further: it generates a complete infrastructure for parsing attribute usages at compile time. This includes constructor matching, parameter extraction, type parameter handling, and named argument processing.
 
-Instead of manually inspecting `AttributeData` from Roslyn, you implement a generated `IDataBuilder` interface and let the generated `Constructor` class do the heavy lifting.
+Instead of manually inspecting `AttributeData` from Roslyn, you get a generated `{Name}Data` record holding the parsed values and two ways to reach it: a `SyntaxValueProvider.For{Name}Data<T>(...)` extension that drives an incremental pipeline directly, and an `AttributeData.TryGet{Name}Data(out var data)` extension for parsing a single attribute in hand.
 
 ### Fast Type Checks
 
@@ -34,4 +34,6 @@ The library also provides two standalone utilities useful in any source generato
 - [Getting Started](./2-getting-started.md) -- Installation and setup
 - [Emitting Attributes](./3-emitting-attributes.md) -- The full attribute parsing pipeline
 - [Emitting Other Abstractions](./4-emitting-other-abstractions.md) -- Embedding enums, classes, and other types
-- [Fast Type Checks](./6-is-type-checks.md) -- Generating fast Roslyn type checks with `[IsType]`
+- [FormattedStringBuilder](./5-formatted-string-builder.md) -- Indentation-aware code generation
+- [EquatableArray](./6-equatable-array.md) -- Value-equality arrays for incremental generators
+- [Fast Type Checks](./7-is-type-checks.md) -- Generating fast Roslyn type checks with `[IsType]`
