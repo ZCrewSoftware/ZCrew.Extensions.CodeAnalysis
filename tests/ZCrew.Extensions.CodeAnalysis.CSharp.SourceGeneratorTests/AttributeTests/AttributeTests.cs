@@ -19,7 +19,9 @@ public class AttributeTests
     [InlineData("NullableParameter.json")]
     [InlineData("ArrayAndTypeParameters.json")]
     [InlineData("ReservedNames.json")]
-    public async Task EmbeddedAttribute_WithReplaceAction_ShouldGenerateCodeToReplaceServices(string testDescriptor)
+    [InlineData("IgnoredProperties.json")]
+    [InlineData("NonPublicConstructors.json")]
+    public async Task EmbeddedAttribute_WithMarkedAttribute_ShouldGenerateAttributeData(string testDescriptor)
     {
         // Arrange
         var testCaseFile = TestCases / testDescriptor;

@@ -12,6 +12,9 @@ internal class ServiceAttribute : Attribute
 
     public ServiceAttribute(Type serviceType, Type implementationType, string[] tags) { }
 
+    // Non-public, so the generated matcher never carries it even though the same compilation can apply it.
+    internal ServiceAttribute(long code) { }
+
     public string? Name { get; init; }
 }
 
@@ -33,7 +36,9 @@ internal class OverloadAttribute : Attribute
 }
 
 // A null constant and an object-typed parameter, both of which the argument type check has to tolerate.
+// Repeatable, so one target can carry several applications.
 [Microsoft.CodeAnalysis.Embedded]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 internal class NoteAttribute : Attribute
 {
     public NoteAttribute(string? text, object? payload) { }

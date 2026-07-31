@@ -66,9 +66,6 @@ See [EquatableArray](./6-equatable-array.md) for the full API.
 ```csharp
 // Fully qualified name, optionally without nullable annotations
 string name = typeSymbol.ToFullyQualifiedName();
-
-// Match a metadata name without building a display string
-bool isList = typeSymbol.HasFullMetadataName("System.Collections.Generic.List`1");
 ```
 
 `TypedConstantExtensions` reads attribute argument values. The value is written to an `out` parameter rather than returned so that `T` is inferred from the assignment target -- which lets an array constant bind to the `ImmutableArray<T>` overload without you choosing between them:

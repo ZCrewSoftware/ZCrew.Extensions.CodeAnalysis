@@ -1,0 +1,18 @@
+{
+    "Description": "Non-public constructors contribute neither a constructor nor a parameter field.",
+    "SourceFiles": [
+        {
+            "SourceFileName": "NonPublicConstructors.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "NonPublicConstructors.AttributeData.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "NonPublicConstructors.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}

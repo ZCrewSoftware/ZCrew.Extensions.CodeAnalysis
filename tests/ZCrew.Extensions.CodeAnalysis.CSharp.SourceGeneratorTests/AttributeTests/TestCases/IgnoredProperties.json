@@ -1,0 +1,18 @@
+{
+    "Description": "Static, indexer, get-only and non-public-setter properties are not named parameters.",
+    "SourceFiles": [
+        {
+            "SourceFileName": "IgnoredProperties.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "IgnoredProperties.AttributeData.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "IgnoredProperties.SourceText.g.cs",
+            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}

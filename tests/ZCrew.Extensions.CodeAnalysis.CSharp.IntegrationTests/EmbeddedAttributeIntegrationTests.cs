@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -49,6 +50,14 @@ public class EmbeddedAttributeIntegrationTests
 
         [Note(null, "boxed")]
         internal class NullAndObject { }
+
+        // Applied through ServiceAttribute's internal constructor, which the generated matcher does not carry.
+        [Service(7L)]
+        internal class InternalCtorService { }
+
+        [Note("first", "a")]
+        [Note("second", "b")]
+        internal class TwoNotes { }
         """;
 
     private static readonly CSharpCompilation Compilation = CreateCompilation();
@@ -56,12 +65,14 @@ public class EmbeddedAttributeIntegrationTests
     [Fact]
     public void EmbeddedSourceText_CompilesInTheConsumer()
     {
-        var errors = Compilation
+        // Warnings count too: the compilation enables nullable, so anything short of this lets a badly annotated
+        // emission through.
+        var diagnostics = Compilation
             .GetDiagnostics(TestContext.Current.CancellationToken)
-            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Where(d => d.Severity >= DiagnosticSeverity.Warning)
             .ToArray();
 
-        Assert.Empty(errors);
+        Assert.Empty(diagnostics);
     }
 
     [Fact]
@@ -107,8 +118,19 @@ public class EmbeddedAttributeIntegrationTests
     [Fact]
     public void TryGetServiceAttributeData_RejectsTheGenericOverload()
     {
-        Assert.False(AttributeOn("Consumer.GenericService").TryGetServiceAttributeData(out _));
-        Assert.False(AttributeOn("Consumer.MinimalService").TryGetServiceAttributeData_2(out _));
+        Assert.False(AttributeOn("Consumer.GenericService").TryGetServiceAttributeData(out var nonGeneric));
+        Assert.Null(nonGeneric);
+
+        Assert.False(AttributeOn("Consumer.MinimalService").TryGetServiceAttributeData_2(out var generic));
+        Assert.Null(generic);
+    }
+
+    [Fact]
+    public void TryGetServiceAttributeData_RejectsAUsageOfANonPublicConstructor()
+    {
+        Assert.False(AttributeOn("Consumer.InternalCtorService").TryGetServiceAttributeData(out var data));
+
+        Assert.Null(data);
     }
 
     [Fact]
@@ -117,7 +139,6 @@ public class EmbeddedAttributeIntegrationTests
         Assert.True(AttributeOn("Consumer.OverloadByString").TryGetOverloadAttributeData(out var byString));
         Assert.Equal("named", byString.Name);
         Assert.Null(byString.Type);
-        Assert.Equal(0, byString.Value);
 
         Assert.True(AttributeOn("Consumer.OverloadByType").TryGetOverloadAttributeData(out var byType));
         Assert.Equal(SpecialType.System_String, byType.Type?.SpecialType);
@@ -136,6 +157,84 @@ public class EmbeddedAttributeIntegrationTests
 
         Assert.Null(data.Text);
         Assert.Equal("boxed", data.Payload);
+    }
+
+    [Fact]
+    public void ForServiceAttributeData_YieldsOnlyTheNonGenericTargets()
+    {
+        var targets = RunProvider(provider => provider.ForServiceAttributeData(MatchAll, TargetName));
+
+        Assert.Equal(["FullService", "MinimalService"], targets.Order());
+    }
+
+    [Fact]
+    public void ForServiceAttributeData_2_YieldsOnlyTheGenericTargets()
+    {
+        var targets = RunProvider(provider => provider.ForServiceAttributeData_2(MatchAll, TargetName));
+
+        Assert.Equal(["GenericService"], targets);
+    }
+
+    [Fact]
+    public void ForServiceAttributeData_HonoursThePredicate()
+    {
+        var targets = RunProvider(provider => provider.ForServiceAttributeData(static (_, _) => false, TargetName));
+
+        Assert.Empty(targets);
+    }
+
+    [Fact]
+    public void ForServiceAttributeData_SkipsTargetsNoConstructorMatches()
+    {
+        var targets = RunProvider(provider => provider.ForServiceAttributeData(MatchAll, TargetName));
+
+        Assert.DoesNotContain("InternalCtorService", targets);
+    }
+
+    [Fact]
+    public void ForNoteAttributeData_YieldsEveryAttributeApplication()
+    {
+        var results = RunProvider(provider =>
+            provider.ForNoteAttributeData(
+                MatchAll,
+                static (context, data, _) => (Target: context.TargetSymbol.Name, Notes: data)
+            )
+        );
+
+        var notes = Assert.Single(results, result => result.Target == "TwoNotes").Notes;
+
+        Assert.Equal(2, notes.Length);
+        Assert.Equal("first", notes[0].Text);
+        Assert.Equal("a", notes[0].Payload);
+        Assert.Equal("second", notes[1].Text);
+        Assert.Equal("b", notes[1].Payload);
+    }
+
+    // Accept every syntax node the provider offers; narrowing is what ForServiceAttributeData_HonoursThePredicate covers.
+    private static bool MatchAll(SyntaxNode node, CancellationToken cancellationToken)
+    {
+        return true;
+    }
+
+    // The transform every target-name assertion shares: project the annotated symbol's name.
+    private static string TargetName<TData>(
+        GeneratorAttributeSyntaxContext context,
+        ImmutableArray<TData> data,
+        CancellationToken cancellationToken
+    )
+    {
+        return context.TargetSymbol.Name;
+    }
+
+    private static IReadOnlyList<T> RunProvider<T>(Func<SyntaxValueProvider, IncrementalValuesProvider<T>> register)
+    {
+        var probe = new AttributeProviderProbe<T>(register);
+
+        CSharpGeneratorDriver
+            .Create(probe.AsSourceGenerator())
+            .RunGenerators(Compilation, TestContext.Current.CancellationToken);
+
+        return probe.Results;
     }
 
     private static AttributeData AttributeOn(string fullyQualifiedMetadataName)

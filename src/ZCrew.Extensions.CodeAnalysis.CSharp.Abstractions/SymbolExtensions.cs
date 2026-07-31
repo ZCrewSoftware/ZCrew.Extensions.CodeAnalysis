@@ -143,7 +143,7 @@ public static class SymbolExtensions
         /// <example>
         ///     <c>System.Collections.Generic.List`2</c>.
         /// </example>
-        public bool HasFullMetadataName(string fullMetadataName)
+        internal bool HasFullMetadataName(string fullMetadataName)
         {
             var name = symbol.MetadataName;
             var namespaceLength = fullMetadataName.Length - name.Length;
