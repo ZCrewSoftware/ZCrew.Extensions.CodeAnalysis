@@ -105,6 +105,7 @@ The JSON test-case pattern (provided by the Testing package):
 - `JsonTestCase.FromJsonFileAsync()` loads the descriptor; `SourceGeneratorTestBuilder.BuildAsync()` sets up the Roslyn harness
 - `WithExpectedSourceUpdates()` (enabled off-CI) rewrites mismatched or missing `.g.cs` files in place **and still fails the run** — so regenerating expectations is: run red, review the diff in git, re-run green
 - Generators and Testing expose internals to `*.SourceGeneratorTests` via `InternalsVisibleTo`
+- `GeneratedFileName` is the full path Roslyn emits, qualified with a per-generator variable, e.g. `$(IsTypeIncrementalGenerator)/Ns.Type.g.cs`
 
 ## Key Conventions
 

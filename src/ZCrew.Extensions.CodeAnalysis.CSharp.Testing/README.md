@@ -1,8 +1,14 @@
 # ZCrew.Extensions.CodeAnalysis.CSharp.Testing
 
-Testing library for verifying Roslyn source generators. It drives a generator through Roslyn's
-`CSharpSourceGeneratorTest` harness from a small JSON descriptor, so each test case is just a set of input and
+Testing library for verifying Roslyn source generators and diagnostic analyzers. It drives any number of them
+through Roslyn's `AnalyzerTest` harness from a small JSON descriptor, so each test case is just a set of input and
 expected-output files plus a `.json` that ties them together.
+
+> **Preview.** The API is still settling and breaks between versions.
+
+The assertion runs in both directions: every file the generators emit must be listed as an expected generated file,
+and every file listed must be emitted. Listing none is therefore a real assertion — that the generators produce
+nothing for those inputs.
 
 ## Installation
 
@@ -28,14 +34,17 @@ A test case is three kinds of file in a `TestCases/` folder next to your test cl
     "GeneratedFiles": [
         {
             "SourceFileName": "MyCase.SourceText.g.cs",
-            "GeneratedFileName": "MyNamespace.MyTypeSourceText.g.cs"
+            "GeneratedFileName": "$(MyGenerator)/MyNamespace.MyTypeSourceText.g.cs"
         }
     ]
 }
 ```
 
-`SourceFileName` is the file on disk; `GeneratedFileName` is the **hint name** your generator passes to
-`context.AddSource(hintName, ...)`.
+`SourceFileName` is the file on disk. `GeneratedFileName` is the full path Roslyn emits the source under:
+`{generator assembly name}/{generator full type name}/{hint name}`, where the hint name is what your generator
+passes to `context.AddSource(hintName, ...)`.
+
+Every registered generator contributes a variable named after its type, so `$(MyGenerator)` expands to its directory.
 
 ## Expecting diagnostics
 
@@ -45,7 +54,7 @@ Declare expected diagnostics where they occur:
   that file. Give each a location by `Snippet` (the start of its single occurrence in that file) or by an explicit
   1-based `Line`/`Column`.
 - At the **top level**, an `ExpectedDiagnostics` array asserts diagnostics with no location (`Location.None`) — for
-  example `CS5001` or a compilation-level analyzer diagnostic.
+  example `CS8785` when a generator throws, or a compilation-level analyzer diagnostic.
 
 Each entry has an `Id`, an optional `Severity` (defaults to `Error`), and an optional `Message` to match exactly.
 
@@ -63,14 +72,14 @@ Each entry has an `Id`, an optional `Severity` (defaults to `Error`), and an opt
     "GeneratedFiles": [
         {
             "SourceFileName": "MyCase.SourceText.g.cs",
-            "GeneratedFileName": "MyNamespace.MyTypeSourceText.g.cs",
+            "GeneratedFileName": "$(MyGenerator)/MyNamespace.MyTypeSourceText.g.cs",
             "ExpectedDiagnostics": [
                 { "Id": "CS0219", "Severity": "Warning", "Snippet": "unused" }
             ]
         }
     ],
     "ExpectedDiagnostics": [
-        { "Id": "CS5001" }
+        { "Id": "CS8785", "Severity": "Warning" }
     ]
 }
 ```
@@ -85,11 +94,11 @@ Configure a shared baseline once, then load and run each case. Resolve the `Test
 tree with `TestPath.ForCaller()` so fixtures are checked into git:
 
 ```csharp
-private static readonly SourceGeneratorTestBuilder<MyGenerator, DefaultVerifier> Baseline =
-    SourceGeneratorTestBuilder<MyGenerator>
-        .CreateDefaultBuilder()
+private static readonly RoslynTestBuilder<DefaultVerifier> Baseline =
+    IncrementalGeneratorTestBuilder
+        .CreateDefaultBuilder<MyGenerator>()
         .WithReferenceAssemblies(ReferenceAssemblies.Net.Net100)
-        .WithGeneratorPostInitializationSources();
+        .WithAdditionalReferences("MyLibrary.dll");
 
 private static readonly TestPath testCases = TestPath.ForCaller() / "TestCases";
 
@@ -103,8 +112,30 @@ public async Task Generates_expected_sources(string descriptor)
 }
 ```
 
+`CreateDefaultBuilder` verifies all compiler diagnostics, suppresses `CS1591`, and expects every generator's
+post-initialization sources (`WithGeneratorPostInitializationSources`). Start from `Create` instead to opt out.
+
+`WithAdditionalReferences` adds the assemblies the input sources need — typically the library declaring the
+attributes your generator looks for, without which they fail to compile with `CS0246`. A bare file name resolves
+against the test's output directory, so the assembly has to land there (a `ProjectReference` to it does that).
+
 The builder is immutable (every `With*` call forks a new builder) so a fully configured baseline can be shared
 as a fixture and specialized per test without affecting other tests.
+
+## Multiple Generators and Analyzers
+
+The `RoslynTestBuilder` supports multiple generators and diagnostic analyzers:
+
+```csharp
+RoslynTestBuilder
+    .CreateDefaultBuilder()
+    .WithIncrementalGenerator<MyIncrementalGenerator>()
+    .WithSourceGenerator<MySourceGenerator>()
+    .WithDiagnosticAnalyzer<MyAnalyzer>();
+```
+
+This would run every generator and then the analyzer on all input and output files. This can even be done with only
+source generators or with only diagnostic analyzers.
 
 ## Project setup
 
@@ -120,6 +151,17 @@ source tree via `TestPath.ForCaller()`, they do not need to be copied to `bin`:
   <None Include="**/TestCases/**/*.cs" Exclude="bin/**/*.cs" />
 </ItemGroup>
 ```
+
+Expected generated files are compared exactly, with no line-ending normalization, so a `.g.cs` fixture has to match
+the generator's output byte for byte. Keep git from rewriting them:
+
+```gitattributes
+*.g.cs -text
+```
+
+and check that your formatter skips them (CSharpier ignores `*.g.cs` by default; others may not). If the generator
+builds its output with `StringBuilder.AppendLine` or `Environment.NewLine`, its line endings follow the OS it runs
+on and no single fixture can match both — emit a fixed newline instead if the tests run on more than one platform.
 
 ## Updating expected files in place
 

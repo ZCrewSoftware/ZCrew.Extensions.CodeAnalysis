@@ -7,11 +7,11 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "All.AttributeData.g.cs",
-            "GeneratedFileName": "AttributeTests.TestAttributeData_2.g.cs"
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeData_2.g.cs"
         },
         {
             "SourceFileName": "All.SourceText.g.cs",
-            "GeneratedFileName": "AttributeTests.TestAttributeSourceText_2.g.cs"
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText_2.g.cs"
         }
     ]
 }

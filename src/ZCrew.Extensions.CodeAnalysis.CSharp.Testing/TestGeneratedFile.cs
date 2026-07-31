@@ -1,21 +1,23 @@
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 
 /// <summary>
-///     Describes a generated file the test expects: the on-disk file holding the expected content and the hint name
-///     the generator produces it under.
+///     Describes a generated file the test expects: the on-disk file holding the expected content and the path the
+///     generator produces it under.
 /// </summary>
 public class TestGeneratedFile
 {
     /// <summary>
     ///     The file name holding the expected generated content, resolved relative to
-    ///     <see cref="TestCase.Directory" />.
+    ///     <see cref="ITestCase.Directory" />.
     /// </summary>
     public string SourceFileName { get; set; } = string.Empty;
 
     /// <summary>
-    ///     The hint name the generator emits this source under (i.e. the <c>hintName</c> passed to
-    ///     <see cref="Microsoft.CodeAnalysis.SourceProductionContext.AddSource(string, Microsoft.CodeAnalysis.Text.SourceText)" />).
-    ///     It is mapped to the full generated file path the test verifies against.
+    ///     The full path the generator emits this source under: the generator's assembly name, its full type name,
+    ///     then the <c>hintName</c> passed to
+    ///     <see cref="Microsoft.CodeAnalysis.SourceProductionContext.AddSource(string, Microsoft.CodeAnalysis.Text.SourceText)" />.
+    ///     Qualify it with the generator's variable rather than writing the prefix out, for example
+    ///     <c>$(MyGenerator)/MyNamespace.MyType.g.cs</c>, where <c>MyGenerator</c> is the generator's type name.
     /// </summary>
     public string GeneratedFileName { get; set; } = string.Empty;
 

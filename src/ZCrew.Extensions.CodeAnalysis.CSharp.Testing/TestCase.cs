@@ -1,9 +1,6 @@
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 
-/// <summary>
-///     Describes a single source generator test: the source files to compile and the generated files to verify
-///     against.
-/// </summary>
+/// <inheritdoc cref="ITestCase"/>
 public class TestCase : ITestCase
 {
     /// <summary>
@@ -15,7 +12,7 @@ public class TestCase : ITestCase
     }
 
     /// <summary>
-    ///     Initializes a new empty <see cref="TestCase"/> named <see cref="Name"/>.
+    ///     Initializes a new empty <see cref="TestCase"/> named <paramref name="name"/>.
     /// </summary>
     /// <param name="name">The test name.</param>
     public TestCase(string name)
@@ -23,14 +20,10 @@ public class TestCase : ITestCase
         Name = name;
     }
 
-    /// <summary>
-    ///     The name of the test. Typically, this is the name of the test metadata file without an extension.
-    /// </summary>
+    /// <inheritdoc/>
     public string Name { get; set; }
 
-    /// <summary>
-    ///     An optional human-readable description of the test case. Not used during execution.
-    /// </summary>
+    /// <inheritdoc/>
     public string? Description { get; set; }
 
     /// <inheritdoc cref="ITestCase.SourceFiles"/>

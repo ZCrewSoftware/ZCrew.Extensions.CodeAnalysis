@@ -4,11 +4,9 @@ using Microsoft.CodeAnalysis;
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
 
 /// <summary>
-///     Describes a diagnostic the test expects the compilation or generator to report. Where the diagnostic is
-///     declared determines its location: declared on <see cref="ITestCase.ExpectedDiagnostics" /> it is expected to
-///     have no location (<see cref="Location.None" />); declared on a <see cref="TestSourceFile" /> or
-///     <see cref="TestGeneratedFile" /> it is expected in that file, located by <see cref="Snippet" /> or by an
-///     explicit <see cref="Line" /> and <see cref="Column" />.
+///     Describes a diagnostic the test expects the compilation, a generator or an analyzer to report. Where it is
+///     declared determines its location: on <see cref="ITestCase.ExpectedDiagnostics" /> it is locationless, on a
+///     <see cref="TestSourceFile" /> or <see cref="TestGeneratedFile" /> it is located within that file.
 /// </summary>
 public class TestExpectedDiagnostic
 {

@@ -120,13 +120,13 @@ foreach (var attributeData in symbol.GetAttributes())
 
 An arity of one or more inserts `_{arity}` plus an `_` separator; arity zero uses neither. The `Attribute` suffix is kept.
 
-| | `ServiceAttribute` | `ServiceAttribute<TService, TImplementation>` |
-|---|---|---|
-| Data record | `ServiceAttributeData` | `ServiceAttributeData_2` |
-| `AttributeData` extension | `TryGetServiceAttributeData` | `TryGetServiceAttributeData_2` |
-| `SyntaxValueProvider` extension | `ForServiceAttributeData` | `ForServiceAttributeData_2` |
-| Source text class | `ServiceAttributeSourceText` | `ServiceAttributeSourceText_2` |
-| Definition method | `AddServiceAttributeDefinition()` | `AddServiceAttribute_2_Definition()` |
+|                                 | `ServiceAttribute`                | `ServiceAttribute<TService, TImplementation>` |
+|---------------------------------|-----------------------------------|-----------------------------------------------|
+| Data record                     | `ServiceAttributeData`            | `ServiceAttributeData_2`                      |
+| `AttributeData` extension       | `TryGetServiceAttributeData`      | `TryGetServiceAttributeData_2`                |
+| `SyntaxValueProvider` extension | `ForServiceAttributeData`         | `ForServiceAttributeData_2`                   |
+| Source text class               | `ServiceAttributeSourceText`      | `ServiceAttributeSourceText_2`                |
+| Definition method               | `AddServiceAttributeDefinition()` | `AddServiceAttribute_2_Definition()`          |
 
 `AttributeDataExtensions` and `SyntaxValueProviderExtensions` are `partial`, so every attribute in a namespace merges into the same two classes; the matchers behind them are `file`-scoped and never collide.
 
@@ -162,4 +162,4 @@ The generated body walks the symbol's `Name`/`ContainingNamespace` chain (or use
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/LICENSE.md) file for details.
