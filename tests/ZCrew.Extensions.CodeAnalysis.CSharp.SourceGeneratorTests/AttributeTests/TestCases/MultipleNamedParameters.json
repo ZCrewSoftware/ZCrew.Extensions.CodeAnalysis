@@ -1,4 +1,4 @@
-﻿{
+{
     "SourceFiles": [
         {
             "SourceFileName": "MultipleNamedParameters.Attribute.cs"
@@ -6,20 +6,12 @@
     ],
     "GeneratedFiles": [
         {
+            "SourceFileName": "MultipleNamedParameters.AttributeData.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeData.g.cs"
+        },
+        {
             "SourceFileName": "MultipleNamedParameters.SourceText.g.cs",
             "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleNamedParameters.IDataBuilder.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.ITestAttributeDataBuilder.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleNamedParameters.Constructor.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeConstructor.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleNamedParameters.NamedParameter.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeNamedParameter.g.cs"
         }
     ]
 }

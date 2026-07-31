@@ -3,11 +3,5 @@
         {
             "SourceFileName": "$(TestName).Enum.cs"
         }
-    ],
-    "GeneratedFiles": [
-        {
-            "SourceFileName": "$(TestName).SourceText.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/CacheTests.TestEnumSourceText.g.cs"
-        }
     ]
 }

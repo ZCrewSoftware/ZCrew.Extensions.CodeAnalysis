@@ -1,0 +1,17 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "SetsRequiredMembers.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "SetsRequiredMembers.AttributeData.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "SetsRequiredMembers.SourceText.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}

@@ -1,3 +1,6 @@
+using System.Text;
+using Microsoft.CodeAnalysis.Text;
+
 namespace ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
 /// <summary>
@@ -7,6 +10,17 @@ public static class FormattedStringBuilderExtensions
 {
     extension(FormattedStringBuilder builder)
     {
+        /// <summary>
+        ///     Transforms this <see cref="FormattedStringBuilder"/> into a <see cref="SourceText"/>.
+        /// </summary>
+        /// <param name="encoding">The encoding to use. The default value is <see cref="Encoding.UTF8"/>.</param>
+        /// <returns>The source text from this builder.</returns>
+        public SourceText ToSourceText(Encoding? encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+            return SourceText.From(builder.ToString(), encoding);
+        }
+
         /// <summary>
         ///     Appends the auto-generated comment that some tools will look for.
         /// </summary>

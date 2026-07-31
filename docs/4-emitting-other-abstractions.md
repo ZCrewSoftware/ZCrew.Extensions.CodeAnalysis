@@ -27,16 +27,14 @@ The library generates a single file: `ServiceLifetimeSourceText`.
 #nullable enable
 #pragma warning disable 0618, 1591, 8019
 
-using System.Text;
-using Microsoft.CodeAnalysis.Text;
-
 namespace MyGenerator;
 
 [global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
-internal static class ServiceLifetimeSourceText
+internal static partial class ServiceLifetimeSourceText
 {
-    public static readonly SourceText SourceText = SourceText.From(
+    public static readonly global::Microsoft.CodeAnalysis.Text.SourceText SourceText =
+        global::Microsoft.CodeAnalysis.Text.SourceText.From(
         """
         namespace MyGenerator;
 
@@ -49,30 +47,43 @@ internal static class ServiceLifetimeSourceText
         }
 
         """,
-        Encoding.UTF8
+        global::System.Text.Encoding.UTF8
     );
+
+    public static void AddServiceLifetimeDefinition(
+        this global::Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext context)
+    {
+        context.AddSource("MyGenerator.ServiceLifetimeSourceText.g.cs", SourceText);
+    }
 }
 ```
 
-The generated class exposes the type's full source code as a `SourceText` instance. The naming follows the pattern `{TypeName}SourceText`.
+The generated class exposes the type's full source code as a `SourceText` field, and an `Add{TypeName}Definition()` extension that emits it under the right hint name. The naming follows the pattern `{TypeName}SourceText`; a generic type gets an arity suffix, so `Box<T>` produces `BoxSourceText_1` and `AddBox_1_Definition()`.
 
-> Non-attribute types only generate the `SourceText` file. The attribute parsing infrastructure (`IDataBuilder`, `Constructor`, `Parameter`, etc.) is only generated for types that inherit from `System.Attribute`.
+Every type reference is `global::`-qualified because the output lands in your namespace with no `using` directives.
+
+> Non-attribute types only generate the `SourceText` file. The attribute parsing infrastructure -- the `{Name}Data` record and the `TryGet{Name}Data` / `For{Name}Data` extensions -- is only generated for types that inherit from `System.Attribute`.
+
+> The captured text is the **entire source file**, not just the marked type declaration. Give each embedded type its own file so no unrelated code travels with it into consuming projects.
 
 ## Using the SourceText
 
 ### In PostInitializationOutput
 
-Use `RegisterPostInitializationOutput` when the type should always be emitted, regardless of user code:
+Use `RegisterPostInitializationOutput` when the type should always be emitted, regardless of user code. The generated `Add{TypeName}Definition()` extension picks the hint name for you:
 
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext context)
 {
     context.RegisterPostInitializationOutput(static context =>
     {
-        context.AddSource("ServiceLifetime.g.cs", ServiceLifetimeSourceText.SourceText);
+        context.AddEmbeddedAttributeDefinition();
+        context.AddServiceLifetimeDefinition();
     });
 }
 ```
+
+`AddEmbeddedAttributeDefinition()` emits `Microsoft.CodeAnalysis.EmbeddedAttribute` itself, which the embedded type's own source refers to.
 
 ### In RegisterSourceOutput
 

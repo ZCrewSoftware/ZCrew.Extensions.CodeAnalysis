@@ -107,18 +107,17 @@ internal readonly record struct MyParameterInfo(
 ) : IEquatable<MyParameterInfo>;
 ```
 
-Here is how the library's own `EmbeddedTypeInfo` model is defined:
+Here is how the library's own `EmbeddedAttributeInfo` model is defined:
 
 ```csharp
-internal readonly record struct EmbeddedTypeInfo(
+internal readonly record struct EmbeddedAttributeInfo(
     string Name,
     string Namespace,
     int Arity,
-    string SourceText,
-    bool IsAttribute,
-    EquatableArray<EmbeddedConstructorInfo> Constructors,
-    EquatableArray<EmbeddedTypeParameterInfo> TypeParameters,
-    EquatableArray<EmbeddedNamedParameterInfo> Properties
+    EquatableArray<ConstructorInfo> Constructors,
+    EquatableArray<ParameterInfo> Parameters,
+    EquatableArray<TypeParameterInfo> TypeParameters,
+    EquatableArray<NamedPropertyInfo> NamedProperties
 );
 ```
 
@@ -133,7 +132,7 @@ var builder = ImmutableArray.CreateBuilder<MyParameterInfo>();
 
 foreach (var parameter in symbol.Parameters)
 {
-    builder.Add(new MyParameterInfo(parameter.Name, parameter.Type.ToGenericTypeName()));
+    builder.Add(new MyParameterInfo(parameter.Name, parameter.Type.ToFullyQualifiedName()));
 }
 
 return builder.ToEquatableArray();

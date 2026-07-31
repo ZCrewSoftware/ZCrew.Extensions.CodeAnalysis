@@ -1,0 +1,17 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "RequiredNamedProperty.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "RequiredNamedProperty.AttributeData.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "RequiredNamedProperty.SourceText.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}

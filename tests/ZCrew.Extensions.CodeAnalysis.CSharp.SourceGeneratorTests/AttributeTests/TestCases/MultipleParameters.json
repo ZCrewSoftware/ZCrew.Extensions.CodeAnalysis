@@ -6,20 +6,12 @@
     ],
     "GeneratedFiles": [
         {
+            "SourceFileName": "MultipleParameters.AttributeData.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeData.g.cs"
+        },
+        {
             "SourceFileName": "MultipleParameters.SourceText.g.cs",
             "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleParameters.IDataBuilder.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.ITestAttributeDataBuilder.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleParameters.Constructor.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeConstructor.g.cs"
-        },
-        {
-            "SourceFileName": "MultipleParameters.Parameter.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeParameter.g.cs"
         }
     ]
 }

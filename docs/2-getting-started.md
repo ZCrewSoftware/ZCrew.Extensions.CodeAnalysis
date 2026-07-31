@@ -59,11 +59,33 @@ readonly record struct MyModel(
 
 See [EquatableArray](./6-equatable-array.md) for the full API.
 
+### Symbol and constant helpers
+
+`SymbolExtensions` formats and matches Roslyn symbols:
+
+```csharp
+// Fully qualified name, optionally without nullable annotations
+string name = typeSymbol.ToFullyQualifiedName();
+```
+
+`TypedConstantExtensions` reads attribute argument values. The value is written to an `out` parameter rather than returned so that `T` is inferred from the assignment target -- which lets an array constant bind to the `ImmutableArray<T>` overload without you choosing between them:
+
+```csharp
+constant.GetValue(out string name);
+constant.GetValue(out ImmutableArray<string> tags);
+```
+
 ### The `[Embedded]` Attribute
 
 Mark any type with `[Microsoft.CodeAnalysis.Embedded]` in your source generator project. The library's built-in generator will produce a `SourceText` class for that type, and -- if the type is an attribute -- a full parsing infrastructure.
 
 See [Emitting Attributes](./3-emitting-attributes.md) and [Emitting Other Abstractions](./4-emitting-other-abstractions.md) for details.
+
+### The `[IsType]` Attribute
+
+Mark a `partial bool` method with `[IsType<T>]` or `[IsType(typeof(T))]` and the library fills in a fast symbol check that avoids `ToDisplayString()` comparisons.
+
+See [Fast Type Checks](./7-is-type-checks.md) for details.
 
 ## Next Steps
 
@@ -71,3 +93,4 @@ See [Emitting Attributes](./3-emitting-attributes.md) and [Emitting Other Abstra
 - [Emitting Other Abstractions](./4-emitting-other-abstractions.md) -- Embedding enums, classes, and other types
 - [FormattedStringBuilder](./5-formatted-string-builder.md) -- Indentation-aware code generation
 - [EquatableArray](./6-equatable-array.md) -- Value-equality arrays for incremental generators
+- [Fast Type Checks](./7-is-type-checks.md) -- Generating fast Roslyn type checks with `[IsType]`

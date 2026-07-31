@@ -1,33 +1,7 @@
-﻿{
+{
     "SourceFiles": [
         {
             "SourceFileName": "WithAttribute.Attribute.cs"
-        }
-    ],
-    "GeneratedFiles": [
-        {
-            "SourceFileName": "WithAttribute.SourceText.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
-        },
-        {
-            "SourceFileName": "WithAttribute.IDataBuilder.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.ITestAttributeDataBuilder.g.cs"
-        },
-        {
-            "SourceFileName": "WithAttribute.Constructor.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeConstructor.g.cs"
-        },
-        {
-            "SourceFileName": "WithAttribute.NamedParameter.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeNamedParameter.g.cs"
-        },
-        {
-            "SourceFileName": "WithAttribute.TypeParameter.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeTypeParameter.g.cs"
-        },
-        {
-            "SourceFileName": "WithAttribute.Parameter.g.cs",
-            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeParameter.g.cs"
         }
     ]
 }

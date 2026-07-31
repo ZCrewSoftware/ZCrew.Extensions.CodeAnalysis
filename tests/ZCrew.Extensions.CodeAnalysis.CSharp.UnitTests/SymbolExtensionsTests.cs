@@ -529,4 +529,63 @@ public class SymbolExtensionsTests
         // Assert
         Assert.Equal("public partial void Foo(int value)", declaration);
     }
+
+    [Fact]
+    public void ToFullyQualifiedName_ForNullableReference_IncludesAnnotation()
+    {
+        // Arrange
+        var symbol = GetParameterType("public class C { public void Foo(string? value) { } }");
+
+        // Act
+        var name = symbol.ToFullyQualifiedName();
+
+        // Assert
+        Assert.Equal("string?", name);
+    }
+
+    [Fact]
+    public void ToFullyQualifiedName_WithoutNullableAnnotations_OmitsAnnotation()
+    {
+        // Arrange
+        var symbol = GetParameterType("public class C { public void Foo(string? value) { } }");
+
+        // Act
+        var name = symbol.ToFullyQualifiedName(nullableAnnotations: false);
+
+        // Assert
+        Assert.Equal("string", name);
+    }
+
+    [Fact]
+    public void ToFullyQualifiedName_WithoutNullableAnnotations_OmitsNestedAnnotations()
+    {
+        // Arrange
+        var symbol = GetParameterType("public class C { public void Foo(string?[] value) { } }");
+
+        // Act
+        var name = symbol.ToFullyQualifiedName(nullableAnnotations: false);
+
+        // Assert
+        Assert.Equal("string[]", name);
+    }
+
+    [Fact]
+    public void ToFullyQualifiedName_WithGlobalUsingsAndWithoutNullableAnnotations_OmitsAnnotation()
+    {
+        // Arrange
+        var symbol = GetParameterType(
+            "public class C { public void Foo(System.Collections.Generic.List<string>? value) { } }"
+        );
+
+        // Act
+        var name = symbol.ToFullyQualifiedName(globalUsings: true, nullableAnnotations: false);
+
+        // Assert
+        Assert.Equal("global::System.Collections.Generic.List<string>", name);
+    }
+
+    private static ITypeSymbol GetParameterType(string source)
+    {
+        return RoslynTestHelper.GetMethod(source, "C", "Foo").Parameters[0].Type;
+    }
 }

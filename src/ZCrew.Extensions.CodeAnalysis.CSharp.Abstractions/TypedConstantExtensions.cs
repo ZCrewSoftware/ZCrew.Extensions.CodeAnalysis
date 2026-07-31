@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace ZCrew.Extensions.CodeAnalysis.CSharp;
@@ -62,6 +63,53 @@ public static class TypedConstantExtensions
         {
             get => IsPrimitiveType(constant, "bool");
         }
+
+        /// <summary>
+        ///     Gets the value of the <see cref="TypedConstant"/> as a <typeparamref name="T"/>. The value is written
+        ///     to <paramref name="value"/> rather than returned so that <typeparamref name="T"/> is inferred from the
+        ///     assignment target, which lets an array constant bind to the overload taking an
+        ///     <see cref="ImmutableArray{T}"/> without the caller choosing between them.
+        /// </summary>
+        /// <typeparam name="T">The type of the value.</typeparam>
+        /// <param name="value">The value.</param>
+        /// <exception cref="InvalidCastException">The constant does not hold a <typeparamref name="T"/>.</exception>
+        public void GetValue<T>(out T value)
+        {
+            value = Cast<T>(constant);
+        }
+
+        /// <summary>
+        ///     Gets the elements of an array <see cref="TypedConstant"/>. An array constant has no
+        ///     <see cref="TypedConstant.Value"/>, so its elements are read from <see cref="TypedConstant.Values"/>
+        ///     individually.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <param name="values">The elements, empty when the constant is <see langword="null"/>.</param>
+        /// <exception cref="InvalidCastException">An element does not hold a <typeparamref name="T"/>.</exception>
+        public void GetValue<T>(out ImmutableArray<T> values)
+        {
+            if (constant.IsNull)
+            {
+                values = ImmutableArray<T>.Empty;
+                return;
+            }
+
+            var builder = ImmutableArray.CreateBuilder<T>(constant.Values.Length);
+            foreach (var element in constant.Values)
+            {
+                builder.Add(Cast<T>(element));
+            }
+
+            values = builder.MoveToImmutable();
+        }
+    }
+
+    private static T Cast<T>(TypedConstant constant)
+    {
+        var value = constant.Value!;
+
+        // A boxed enum constant holds its underlying integral type, so it cannot be unboxed to the enum directly.
+        return typeof(T).IsEnum ? (T)Enum.ToObject(typeof(T), value) : (T)value;
     }
 
     private static bool IsPrimitiveType(TypedConstant constant, string typeName)

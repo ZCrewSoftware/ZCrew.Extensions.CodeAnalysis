@@ -13,7 +13,15 @@ public class AttributeTests
     [InlineData("MultipleParameters.json")]
     [InlineData("MultipleConstructors.json")]
     [InlineData("All.json")]
-    public async Task EmbeddedAttribute_WithReplaceAction_ShouldGenerateCodeToReplaceServices(string testDescriptor)
+    [InlineData("PartialConstructors.json")]
+    [InlineData("RequiredNamedProperty.json")]
+    [InlineData("SetsRequiredMembers.json")]
+    [InlineData("NullableParameter.json")]
+    [InlineData("ArrayAndTypeParameters.json")]
+    [InlineData("ReservedNames.json")]
+    [InlineData("IgnoredProperties.json")]
+    [InlineData("NonPublicConstructors.json")]
+    public async Task EmbeddedAttribute_WithMarkedAttribute_ShouldGenerateAttributeData(string testDescriptor)
     {
         // Arrange
         var testCaseFile = TestCases / testDescriptor;

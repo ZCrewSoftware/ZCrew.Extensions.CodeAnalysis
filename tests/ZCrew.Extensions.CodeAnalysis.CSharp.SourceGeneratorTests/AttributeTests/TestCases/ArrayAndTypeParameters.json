@@ -1,0 +1,17 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "ArrayAndTypeParameters.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "ArrayAndTypeParameters.AttributeData.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "ArrayAndTypeParameters.SourceText.g.cs",
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}
