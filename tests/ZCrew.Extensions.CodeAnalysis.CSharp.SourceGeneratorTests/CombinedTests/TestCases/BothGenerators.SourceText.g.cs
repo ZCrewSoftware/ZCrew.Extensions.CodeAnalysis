@@ -2,17 +2,13 @@
 #nullable enable
 #pragma warning disable 0618, 1591, 8019
 
-using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
 namespace CombinedTests;
 
 [global::Microsoft.CodeAnalysis.Embedded]
 [global::System.CodeDom.Compiler.GeneratedCode("ZCrew.Extensions.CodeAnalysis.CSharp", "0.0.0.0")]
-internal static class TestEnumSourceText
+internal static partial class TestEnumSourceText
 {
-    public static readonly SourceText SourceText = SourceText.From(
+    public static readonly global::Microsoft.CodeAnalysis.Text.SourceText SourceText = global::Microsoft.CodeAnalysis.Text.SourceText.From(
         """
         namespace CombinedTests;
         
@@ -24,11 +20,11 @@ internal static class TestEnumSourceText
         }
         
         """,
-        Encoding.UTF8
+        global::System.Text.Encoding.UTF8
     );
     
-    public static void AddTestEnumDefinition(this IncrementalGeneratorPostInitializationContext context)
+    public static void AddTestEnumDefinition(this global::Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext context)
     {
-        context.AddSource("CombinedTests.TestEnum.g.cs", SourceText);
+        context.AddSource("CombinedTests.TestEnumSourceText.g.cs", SourceText);
     }
 }

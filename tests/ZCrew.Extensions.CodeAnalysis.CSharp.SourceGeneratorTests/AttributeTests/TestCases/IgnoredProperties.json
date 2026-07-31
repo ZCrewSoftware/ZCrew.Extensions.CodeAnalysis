@@ -8,11 +8,11 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "IgnoredProperties.AttributeData.g.cs",
-            "GeneratedFileName": "AttributeTests.TestAttributeData.g.cs"
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeData.g.cs"
         },
         {
             "SourceFileName": "IgnoredProperties.SourceText.g.cs",
-            "GeneratedFileName": "AttributeTests.TestAttributeSourceText.g.cs"
+            "GeneratedFileName": "$(EmbeddedAttributeIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
         }
     ]
 }
