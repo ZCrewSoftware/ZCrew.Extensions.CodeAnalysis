@@ -10,6 +10,9 @@
   <ItemGroup>
     <!-- PrivateAssets="all": the assemblies ship in the package directly, not as dependencies -->
     <ProjectReference Include="../ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.csproj" PrivateAssets="all" />
+    <!-- Referenced only so the generator assemblies land in $(OutputPath) for the None items below to pack -->
+    <ProjectReference Include="../ZCrew.Extensions.CodeAnalysis.CSharp.Embedded/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../ZCrew.Extensions.CodeAnalysis.CSharp.IsType/ZCrew.Extensions.CodeAnalysis.CSharp.IsType.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +30,8 @@
     <None Include="$(OutputPath)/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
     <None Include="$(OutputPath)/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.xml" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
     <!-- Loaded by the compiler as analyzers -->
-    <None Include="$(OutputPath)/ZCrew.Extensions.CodeAnalysis.CSharp.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)/ZCrew.Extensions.CodeAnalysis.CSharp.IsType.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <!-- Imported into projects that reference the package -->
     <None Include="build/ZCrew.Extensions.CodeAnalysis.CSharp.targets" Pack="true" PackagePath="build" />
