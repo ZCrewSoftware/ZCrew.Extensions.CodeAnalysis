@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
+    <ProjectReference Include="../../src/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The generated checks reference Microsoft.CodeAnalysis symbol types; the tests also build a compilation to
+         resolve real symbols (e.g. Task<string>) to assert the generated checks against. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+</Project>

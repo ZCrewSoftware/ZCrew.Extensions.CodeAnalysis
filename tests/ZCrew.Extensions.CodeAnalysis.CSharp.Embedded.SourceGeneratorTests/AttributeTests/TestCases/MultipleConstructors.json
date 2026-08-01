@@ -1,0 +1,17 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "MultipleConstructors.Attribute.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "MultipleConstructors.AttributeData.g.cs",
+            "GeneratedFileName": "$(EmbeddedIncrementalGenerator)/AttributeTests.TestAttributeData.g.cs"
+        },
+        {
+            "SourceFileName": "MultipleConstructors.SourceText.g.cs",
+            "GeneratedFileName": "$(EmbeddedIncrementalGenerator)/AttributeTests.TestAttributeSourceText.g.cs"
+        }
+    ]
+}
