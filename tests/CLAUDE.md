@@ -7,10 +7,13 @@ support VSTest-style `--filter "FullyQualifiedName~Foo"` syntax. Use the xUnit.n
 filter flags instead: `--filter-class`, `--filter-method`, `--filter-namespace`.
 Wildcards (`*`) are supported at the start and/or end of each value.
 
-The four test projects are `ZCrew.Extensions.CodeAnalysis.CSharp.UnitTests`,
+The six test projects are `ZCrew.Extensions.CodeAnalysis.CSharp.UnitTests`,
 `ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests`,
-`ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests` and
-`ZCrew.Extensions.CodeAnalysis.CSharp.IntegrationTests`.
+`ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.SourceGeneratorTests`,
+`ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.IntegrationTests`,
+`ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGeneratorTests` and
+`ZCrew.Extensions.CodeAnalysis.CSharp.IsType.IntegrationTests`. Each generator owns its own
+source-generator and integration pair; nothing spans both generators.
 
 Run all tests in a single project:
 ```bash

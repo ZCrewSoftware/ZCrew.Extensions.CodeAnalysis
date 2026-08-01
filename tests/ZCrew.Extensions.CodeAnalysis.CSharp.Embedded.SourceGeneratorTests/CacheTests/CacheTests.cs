@@ -1,0 +1,87 @@
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
+using ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.SourceGeneratorTests.TestHelpers;
+using ZCrew.Extensions.CodeAnalysis.CSharp.Testing;
+
+namespace ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.SourceGeneratorTests.CacheTests;
+
+public class CacheTests
+{
+    private static readonly TestPath TestCases = TestPath.ForCaller() / "TestCases";
+
+    [Theory]
+    [InlineData("WithAttribute.json")]
+    [InlineData("SingleEnum.json")]
+    public async Task EmbeddedAttribute_WithMultipleBuilds_ShouldCacheIncrementalValues(string testDescriptor)
+    {
+        // Arrange
+        var testCaseFile = TestCases / testDescriptor;
+        var testCase = await JsonTestCase.FromJsonFileAsync(testCaseFile, TestContext.Current.CancellationToken);
+        // This test only uses the loaded sources for its caching assertions and never verifies generated output, so
+        // opt out of expected-source updates to avoid a needless extra generator run and file writes.
+        var test = await GeneratorTest
+            .Baseline.WithExpectedSourceUpdates(false)
+            .BuildAsync(testCase, TestContext.Current.CancellationToken);
+        var syntaxTrees = test.TestState.Sources.Select(source => CSharpSyntaxTree.ParseText(source.content)).ToArray();
+
+        var sourceGenerator = new EmbeddedIncrementalGenerator();
+        var driverOptions = new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true);
+        var driver = CSharpGeneratorDriver.Create([sourceGenerator.AsSourceGenerator()], driverOptions: driverOptions);
+        var references = await ReferenceAssemblies.Net.Net100.ResolveAsync(null, CancellationToken.None);
+
+        var cSharpOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation1 = CSharpCompilation.Create(
+            Assembly.GetExecutingAssembly().FullName,
+            syntaxTrees,
+            references,
+            cSharpOptions
+        );
+
+        var compilation2 = compilation1.Clone();
+
+        // Act
+        var cachedDriver = driver.RunGenerators(compilation1, TestContext.Current.CancellationToken);
+        var run1 = cachedDriver.GetRunResult();
+        var run2 = cachedDriver.RunGenerators(compilation2, TestContext.Current.CancellationToken).GetRunResult();
+
+        // Assert
+        Assert.NotNull(run1);
+        Assert.NotNull(run2);
+
+        var run2Result = run2.Results.Single();
+
+        var intermediates = run2Result
+            .TrackedSteps.Where(step => step.Key.StartsWith("EmbeddedAttribute_"))
+            .SelectMany(step => step.Value)
+            .SelectMany(step => step.Outputs)
+            .ToArray();
+
+        var outputs = run2Result
+            .TrackedOutputSteps.SelectMany(step => step.Value)
+            .SelectMany(step => step.Outputs)
+            .ToArray();
+
+        Assert.NotEmpty(intermediates);
+        Assert.All(
+            intermediates,
+            intermediate =>
+            {
+                // Some steps depend on the compilation unit which results in 'Unchanged', other steps will be fully cached
+                Assert.True(
+                    intermediate.Reason is IncrementalStepRunReason.Unchanged or IncrementalStepRunReason.Cached
+                );
+            }
+        );
+
+        Assert.NotEmpty(outputs);
+        Assert.All(
+            outputs,
+            output =>
+            {
+                Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+            }
+        );
+    }
+}

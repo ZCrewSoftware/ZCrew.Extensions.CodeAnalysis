@@ -11,13 +11,16 @@
   <Folder Name="/samples/" />
   <Folder Name="/src/">
     <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.csproj" />
-    <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp.Generators/ZCrew.Extensions.CodeAnalysis.CSharp.Generators.csproj" />
+    <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.csproj" />
+    <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp.IsType/ZCrew.Extensions.CodeAnalysis.CSharp.IsType.csproj" />
     <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp.Testing/ZCrew.Extensions.CodeAnalysis.CSharp.Testing.csproj" />
     <Project Path="src/ZCrew.Extensions.CodeAnalysis.CSharp/ZCrew.Extensions.CodeAnalysis.CSharp.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.IntegrationTests/ZCrew.Extensions.CodeAnalysis.CSharp.IntegrationTests.csproj" />
-    <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests/ZCrew.Extensions.CodeAnalysis.CSharp.SourceGeneratorTests.csproj" />
+    <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.IntegrationTests/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.IntegrationTests.csproj" />
+    <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.SourceGeneratorTests/ZCrew.Extensions.CodeAnalysis.CSharp.Embedded.SourceGeneratorTests.csproj" />
+    <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.IsType.IntegrationTests/ZCrew.Extensions.CodeAnalysis.CSharp.IsType.IntegrationTests.csproj" />
+    <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGeneratorTests/ZCrew.Extensions.CodeAnalysis.CSharp.IsType.SourceGeneratorTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests/ZCrew.Extensions.CodeAnalysis.CSharp.Testing.UnitTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.CodeAnalysis.CSharp.UnitTests/ZCrew.Extensions.CodeAnalysis.CSharp.UnitTests.csproj" />
   </Folder>
