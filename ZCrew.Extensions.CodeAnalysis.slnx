@@ -1,12 +1,13 @@
 <Solution>
   <Folder Name="/docs/">
-    <File Path="docs/1-introduction.md" />
-    <File Path="docs/2-getting-started.md" />
-    <File Path="docs/3-emitting-attributes.md" />
-    <File Path="docs/4-emitting-other-abstractions.md" />
-    <File Path="docs/5-formatted-string-builder.md" />
-    <File Path="docs/6-equatable-array.md" />
-    <File Path="docs/7-is-type-checks.md" />
+    <File Path="docs/emitting-attributes.md" />
+    <File Path="docs/emitting-other-abstractions.md" />
+    <File Path="docs/equatable-array.md" />
+    <File Path="docs/formatted-string-builder.md" />
+    <File Path="docs/getting-started.md" />
+    <File Path="docs/introduction.md" />
+    <File Path="docs/is-type-checks.md" />
+    <File Path="docs/shipping-in-netcore.md" />
   </Folder>
   <Folder Name="/samples/" />
   <Folder Name="/src/">

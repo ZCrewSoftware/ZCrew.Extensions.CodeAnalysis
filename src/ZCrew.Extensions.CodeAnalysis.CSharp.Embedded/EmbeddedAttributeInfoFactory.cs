@@ -147,7 +147,7 @@ internal static partial class EmbeddedAttributeInfoFactory
     {
         if (typeSymbol is IArrayTypeSymbol arrayTypeSymbol)
         {
-            // Attribute arrays cannot nest, so the element is never an array itself.
+            // A jagged type can be declared even though CS0181 blocks applying the attribute.
             var elementType = ToPropertyType(arrayTypeSymbol.ElementType);
             return $"global::System.Collections.Immutable.ImmutableArray<{elementType}>";
         }

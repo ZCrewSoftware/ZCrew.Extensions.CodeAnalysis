@@ -1,10 +1,11 @@
 # ZCrew.Extensions.CodeAnalysis.CSharp
 
-Utility library for building Roslyn source generators. Mark types with `[Embedded]` to generate `SourceText` constants and attribute-parsing infrastructure automatically.
+Utility library for building Roslyn source generators. Mark a type with `[Embedded]` and you get its source as
+a `SourceText` constant, plus the code to parse it back out of a compilation when it's an attribute.
 
 ## Installation
 
-Available on NuGet for .NET Standard 2.0:
+On NuGet, targeting .NET Standard 2.0:
 
 ```xml
 <PackageReference Include="ZCrew.Extensions.CodeAnalysis.CSharp">
@@ -16,7 +17,7 @@ Available on NuGet for .NET Standard 2.0:
 
 ### Embedding any type
 
-Any `internal` type marked with `[Embedded]` gets a generated `SourceText` constant you can emit from your generator:
+Any `internal` type marked with `[Embedded]` gets a `SourceText` constant your generator can emit:
 
 ```csharp
 [Microsoft.CodeAnalysis.Embedded]
@@ -28,11 +29,14 @@ internal enum Lifetime
 }
 ```
 
-This generates a `LifetimeSourceText` class containing a ready-to-use `SourceText` instance, plus a `context.AddLifetimeDefinition()` extension you call from post-initialization — so your generator can emit the type into consuming projects without maintaining raw strings or hint names.
+That gives you a `LifetimeSourceText` class holding a ready-to-use `SourceText`, plus a
+`context.AddLifetimeDefinition()` extension to call from post-initialization. No raw strings or hint names to
+keep in sync.
 
 ### Embedding attributes
 
-Attributes get the `SourceText` constant **plus** a full parsing pipeline. Take an attribute with two constructor overloads, and a generic sibling:
+Attributes get the parsing pipeline on top of the `SourceText` constant. Here's one with two constructor
+overloads and a generic sibling:
 
 ```csharp
 [Microsoft.CodeAnalysis.Embedded]
@@ -52,37 +56,41 @@ internal class ServiceAttribute<TService, TImplementation> : Attribute
 }
 ```
 
-Each declaration produces two files — `ServiceAttributeData.g.cs` and `ServiceAttributeSourceText.g.cs`, with the generic sibling suffixed `_2`.
+Each declaration produces two files, `ServiceAttributeData.g.cs` and `ServiceAttributeSourceText.g.cs`, with
+the generic sibling suffixed `_2`.
 
 #### The data record
 
-Every constructor overload feeds a **single** record, so you get one type to work with instead of one per overload:
+Every overload feeds one record, so there's a single type to work with:
 
 ```csharp
 internal partial record ServiceAttributeData
 {
-    public ITypeSymbol ServiceType = null!;          // declared by both overloads → always assigned
-    public ITypeSymbol? ImplementationType;          // declared by one → widened to nullable
+    public ITypeSymbol ServiceType = null!;          // both overloads declare it, so it's always assigned
+    public ITypeSymbol? ImplementationType;          // only one overload declares it, so it widens to nullable
     public ImmutableArray<string> Tags =
-        ImmutableArray<string>.Empty;                // arrays are value types → .Empty, never nullable
-    public Lifetime Lifetime;                        // named argument → optional unless `required`
+        ImmutableArray<string>.Empty;                // arrays are value types, so .Empty covers the gap
+    public Lifetime Lifetime;                        // named argument, optional unless `required`
 }
 ```
 
-`System.Type` becomes `ITypeSymbol` (a `typeof(...)` argument has no runtime type in the compilation being analyzed), and arrays become `ImmutableArray<T>`. The generic sibling's `TService`/`TImplementation` become `ITypeSymbol Service` and `ITypeSymbol Implementation` on `ServiceAttributeData_2` — the `T` prefix is stripped when followed by an uppercase letter.
+`System.Type` maps to `ITypeSymbol`, since a `typeof(...)` argument has no runtime type in the compilation
+you're analyzing. Arrays map to `ImmutableArray<T>`. On the generic sibling, `TService` and `TImplementation`
+become `ITypeSymbol Service` and `ITypeSymbol Implementation` on `ServiceAttributeData_2`, dropping the `T`
+prefix when an uppercase letter follows.
 
 #### Entry points
 
-| Entry point                                                       | Where     | Purpose                                                                   |
-|-------------------------------------------------------------------|-----------|---------------------------------------------------------------------------|
-| `context.AddEmbeddedAttributeDefinition()`                        | post-init | Emits `Microsoft.CodeAnalysis.EmbeddedAttribute` itself                   |
-| `context.AddServiceAttributeDefinition()`                         | post-init | Emits your attribute into the consuming compilation                       |
-| `context.AddServiceAttribute_2_Definition()`                      | post-init | Same, for the generic overload                                            |
-| `ServiceAttributeSourceText.SourceText`                           | anywhere  | The raw `SourceText`, for emitting conditionally                          |
-| `syntaxProvider.ForServiceAttributeData<T>(predicate, transform)` | pipeline  | Preferred: wraps `ForAttributeWithMetadataName` and hands you parsed data |
-| `attributeData.TryGetServiceAttributeData(out var data)`          | anywhere  | Manual parse when you already hold an `AttributeData`                     |
+| Entry point                                                       | Where     | What it's for                                                 |
+|-------------------------------------------------------------------|-----------|---------------------------------------------------------------|
+| `context.AddEmbeddedAttributeDefinition()`                        | post-init | Emits `Microsoft.CodeAnalysis.EmbeddedAttribute` itself        |
+| `context.AddServiceAttributeDefinition()`                         | post-init | Emits your attribute into the consuming compilation            |
+| `context.AddServiceAttribute_2_Definition()`                      | post-init | Same, for the generic overload                                 |
+| `ServiceAttributeSourceText.SourceText`                           | anywhere  | The raw `SourceText`, for emitting conditionally               |
+| `syntaxProvider.ForServiceAttributeData<T>(predicate, transform)` | pipeline  | The main one: wraps `ForAttributeWithMetadataName` and hands you parsed data |
+| `attributeData.TryGetServiceAttributeData(out var data)`          | anywhere  | Parse an `AttributeData` you already hold                      |
 
-In a generator that looks like:
+Putting it together:
 
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -102,9 +110,10 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
 }
 ```
 
-`attributes` is an `ImmutableArray<ServiceAttributeData>`, because the attribute may be applied more than once. A target whose attribute name matched but whose constructor did not is dropped from the pipeline entirely, rather than flowing through with a default value.
+`attributes` is an `ImmutableArray<ServiceAttributeData>`, since the attribute can be applied more than once. If
+the attribute name matches but no constructor does, the target gets dropped from the pipeline.
 
-When you already hold an `AttributeData`, parse it directly:
+For an `AttributeData` you already have:
 
 ```csharp
 foreach (var attributeData in symbol.GetAttributes())
@@ -118,7 +127,8 @@ foreach (var attributeData in symbol.GetAttributes())
 
 #### Naming
 
-An arity of one or more inserts `_{arity}` plus an `_` separator; arity zero uses neither. The `Attribute` suffix is kept.
+Arity of one or more inserts `_{arity}` plus an `_` separator; arity zero uses neither. The `Attribute` suffix
+stays.
 
 |                                 | `ServiceAttribute`                | `ServiceAttribute<TService, TImplementation>` |
 |---------------------------------|-----------------------------------|-----------------------------------------------|
@@ -128,13 +138,17 @@ An arity of one or more inserts `_{arity}` plus an `_` separator; arity zero use
 | Source text class               | `ServiceAttributeSourceText`      | `ServiceAttributeSourceText_2`                |
 | Definition method               | `AddServiceAttributeDefinition()` | `AddServiceAttribute_2_Definition()`          |
 
-`AttributeDataExtensions` and `SyntaxValueProviderExtensions` are `partial`, so every attribute in a namespace merges into the same two classes; the matchers behind them are `file`-scoped and never collide.
+`AttributeDataExtensions` and `SyntaxValueProviderExtensions` are `partial`, so every attribute in a namespace
+merges into the same two classes. The matchers behind them are `file`-scoped and never collide.
 
-All generated code handles `TypedConstant` and `ITypeSymbol` unwrapping, so your generator can focus on business logic instead of Roslyn plumbing. See [Emitting Attributes](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/3-emitting-attributes.md) for the full rules.
+The generated code does the `TypedConstant` and `ITypeSymbol` unwrapping for you. See
+[Emitting Attributes](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/emitting-attributes.md)
+for the full rules.
 
 ### Fast type checks
 
-Mark a `partial bool` method with `[IsType<T>]` (or `[IsType(typeof(T))]`) and the library fills in a fast pattern-match type check over an `ISymbol`:
+Mark a `partial bool` method with `[IsType<T>]` (or `[IsType(typeof(T))]`) and the library fills in a fast
+pattern-match check over an `ISymbol`:
 
 ```csharp
 internal static partial class SymbolChecks
@@ -144,22 +158,33 @@ internal static partial class SymbolChecks
 }
 ```
 
-The generated body walks the symbol's `Name`/`ContainingNamespace` chain (or uses `SpecialType` for well-known types like `System.IDisposable`) instead of slower `ToDisplayString()` comparisons, and doubles as a null check. See [Fast Type Checks](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/7-is-type-checks.md) for details.
+The generated body walks the symbol's `Name`/`ContainingNamespace` chain, or uses `SpecialType` for well-known
+types like `System.IDisposable`. Cheaper than comparing `ToDisplayString()` output, and it doubles as a null
+check. See
+[Fast Type Checks](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/is-type-checks.md)
+for details.
 
 ## Documentation
 
-- [Introduction](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/1-introduction.md) -- What the library does and why
-- [Getting Started](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/2-getting-started.md) -- Installation, namespaces, and the utility types
-- [Emitting Attributes](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/3-emitting-attributes.md) -- The full attribute parsing pipeline
-- [Emitting Other Abstractions](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/4-emitting-other-abstractions.md) -- Embedding enums, classes, and other types
-- [FormattedStringBuilder](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/5-formatted-string-builder.md) -- Indentation-aware code generation
-- [EquatableArray](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/6-equatable-array.md) -- Value-equality arrays for incremental generators
-- [Fast Type Checks](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/7-is-type-checks.md) -- Generating fast Roslyn type checks with `[IsType]`
+- [Introduction](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/introduction.md)
+  for what the library does
+- [Getting Started](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/getting-started.md)
+  for install, namespaces, and the utility types
+- [Emitting Attributes](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/emitting-attributes.md)
+  for the attribute parsing pipeline
+- [Emitting Other Abstractions](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/emitting-other-abstractions.md)
+  to embed enums, classes, and other types
+- [FormattedStringBuilder](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/formatted-string-builder.md)
+- [EquatableArray](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/equatable-array.md)
+- [Fast Type Checks](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/is-type-checks.md)
+- [Shipping in a .NET Core package](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/docs/shipping-in-netcore.md)
 
 ## Testing your generator
 
-`ZCrew.Extensions.CodeAnalysis.CSharp.Testing` is a companion package for testing *any* source generator, using JSON descriptors that pair input sources with expected generated output. See its [README](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/src/ZCrew.Extensions.CodeAnalysis.CSharp.Testing/README.md).
+`ZCrew.Extensions.CodeAnalysis.CSharp.Testing` is a companion package for testing *any* source generator. It
+uses JSON descriptors that pair input sources with the output you expect. See its
+[README](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/src/ZCrew.Extensions.CodeAnalysis.CSharp.Testing/README.md).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/LICENSE.md) file for details.
+MIT, see [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis/blob/main/LICENSE.md).
