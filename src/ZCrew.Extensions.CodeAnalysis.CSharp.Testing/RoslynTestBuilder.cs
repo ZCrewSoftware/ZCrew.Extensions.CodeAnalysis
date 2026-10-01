@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -340,7 +339,7 @@ public class RoslynTestBuilder<TVerifier>
     /// <summary>
     ///     Enables in-place updates of the expected generated files. When enabled, <see cref="BuildAsync"/> runs the
     ///     generator and, for each expected generated file that is missing or whose content differs (comparing
-    ///     line-ending insensitively), overwrites it on disk with the produced output (normalized to CRLF).
+    ///     line-ending insensitively), overwrites it on disk with the produced output (normalized to LF).
     /// </summary>
     /// <remarks>
     ///     Because it writes to the source tree, this is off by default. Gate it off wherever the workspace must not be
@@ -662,7 +661,7 @@ public class RoslynTestBuilder<TVerifier>
             append: false,
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
         );
-        await writer.WriteAsync(NormalizeToCrlf(content)).ConfigureAwait(false);
+        await writer.WriteAsync(NormalizeToLf(content)).ConfigureAwait(false);
     }
 
     private static bool LineEndingAgnosticEquals(string left, string right)
@@ -673,11 +672,6 @@ public class RoslynTestBuilder<TVerifier>
     private static string NormalizeToLf(string value)
     {
         return value.Replace("\r\n", "\n").Replace("\r", "\n");
-    }
-
-    private static string NormalizeToCrlf(string value)
-    {
-        return NormalizeToLf(value).Replace("\n", "\r\n");
     }
 
     private void AddExpectedDiagnostics(

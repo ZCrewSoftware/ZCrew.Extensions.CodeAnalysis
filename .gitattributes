@@ -1,0 +1,19 @@
+# LF in the repository and in the working tree, on every platform. This overrides core.autocrlf,
+# which is still set on some machines, and matches end_of_line in .editorconfig.
+* text=auto eol=lf
+
+# Shell scripts and anything a Linux container consumes break outright with CRLF.
+*.sh            text eol=lf
+Dockerfile      text eol=lf
+*.yaml          text eol=lf
+*.yml           text eol=lf
+
+# Windows-only scripts.
+*.cmd           text eol=crlf
+*.bat           text eol=crlf
+
+*.pfx           binary
+*.cer           binary
+*.snk           binary
+*.png           binary
+*.ico           binary

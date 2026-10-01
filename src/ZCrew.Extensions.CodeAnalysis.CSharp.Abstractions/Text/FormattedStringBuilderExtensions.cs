@@ -125,7 +125,8 @@ public static class FormattedStringBuilderExtensions
         }
 
         /// <summary>
-        ///     Appends a raw <see cref="string"/> (denoted by <c>"""</c>).
+        ///     Appends a raw <see cref="string"/> (denoted by <c>"""</c>). This normalizes line endings to <c>LF</c>,
+        ///     like <see cref="FormattedStringBuilder.AppendLine()"/> does.
         /// </summary>
         /// <param name="rawString">The raw string to write.</param>
         /// <returns>A reference to this instance after the append operation has completed.</returns>

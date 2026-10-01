@@ -26,6 +26,8 @@ internal static class GeneratorTest
             .WithCompilerDiagnostics(CompilerDiagnostics.All)
             // Disable the warning on the source files about missing XML comments
             .WithDisabledDiagnostics("CS1591")
+            // Abstractions targets an older Roslyn; the SDK suppresses these unification warnings by default
+            .WithDisabledDiagnostics("CS1701", "CS1702")
             // All tests will emit the post-initialization sources (e.g. 'Microsoft.CodeAnalysis.EmbeddedAttribute')
             .WithGeneratorPostInitializationSources()
             // Overwrite mismatched/missing expected files in place for review, except on CI

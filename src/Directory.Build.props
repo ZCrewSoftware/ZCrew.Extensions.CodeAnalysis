@@ -1,17 +1,13 @@
 <Project>
-  <!-- Import Directory.Build.props from above folder -->
-  <PropertyGroup>
-    <ParentDirectoryBuildPropsPath>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))</ParentDirectoryBuildPropsPath>
-  </PropertyGroup>
-  <ImportGroup>
-    <Import Condition="'$(ParentDirectoryBuildPropsPath)' != ''" Project="$(ParentDirectoryBuildPropsPath)" />
-  </ImportGroup>
+  <!-- This makes sure the outer Directory.Build.props file in the root of the solution is read and applied -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"/>
 
   <!-- Common properties for all library projects -->
   <PropertyGroup>
     <OutputType>Library</OutputType>
+    <!-- Required for analyzers and source generators -->
+    <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>true</IsPackable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Common NuGet package metadata -->
@@ -20,18 +16,14 @@
     <Company>ZCrew</Company>
     <PackageProjectUrl>https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ZCrewSoftware/ZCrew.Extensions.CodeAnalysis.git</RepositoryUrl>
+    <DebugType>embedded</DebugType>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
-
-  <!-- Source Link for better debugging experience -->
-  <PropertyGroup>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
