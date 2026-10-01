@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!-- Packaging-only project: produces the ZCrew.Extensions.CodeAnalysis.CSharp package, contains no code -->
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
     <NoWarn>$(NoWarn);NU5128</NoWarn>

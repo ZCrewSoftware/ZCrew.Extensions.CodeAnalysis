@@ -13,6 +13,9 @@ On NuGet, targeting .NET Standard 2.0:
 </PackageReference>
 ```
 
+This requires version **.NET SDK 9.0.300 / Visual Studio 2022 17.14 / Roslyn 4.14** or newer.
+Tested up to **.NET SDK 10.0.401 / Visual Studio 2026 18.0 / Roslyn 5.9** but should continue to work on newer versions.
+
 ## Usage
 
 ### Embedding any type
@@ -81,14 +84,14 @@ prefix when an uppercase letter follows.
 
 #### Entry points
 
-| Entry point                                                       | Where     | What it's for                                                 |
-|-------------------------------------------------------------------|-----------|---------------------------------------------------------------|
-| `context.AddEmbeddedAttributeDefinition()`                        | post-init | Emits `Microsoft.CodeAnalysis.EmbeddedAttribute` itself        |
-| `context.AddServiceAttributeDefinition()`                         | post-init | Emits your attribute into the consuming compilation            |
-| `context.AddServiceAttribute_2_Definition()`                      | post-init | Same, for the generic overload                                 |
-| `ServiceAttributeSourceText.SourceText`                           | anywhere  | The raw `SourceText`, for emitting conditionally               |
+| Entry point                                                       | Where     | What it's for                                                                |
+|-------------------------------------------------------------------|-----------|------------------------------------------------------------------------------|
+| `context.AddEmbeddedAttributeDefinition()`                        | post-init | Emits `Microsoft.CodeAnalysis.EmbeddedAttribute` itself                      |
+| `context.AddServiceAttributeDefinition()`                         | post-init | Emits your attribute into the consuming compilation                          |
+| `context.AddServiceAttribute_2_Definition()`                      | post-init | Same, for the generic overload                                               |
+| `ServiceAttributeSourceText.SourceText`                           | anywhere  | The raw `SourceText`, for emitting conditionally                             |
 | `syntaxProvider.ForServiceAttributeData<T>(predicate, transform)` | pipeline  | The main one: wraps `ForAttributeWithMetadataName` and hands you parsed data |
-| `attributeData.TryGetServiceAttributeData(out var data)`          | anywhere  | Parse an `AttributeData` you already hold                      |
+| `attributeData.TryGetServiceAttributeData(out var data)`          | anywhere  | Parse an `AttributeData` you already hold                                    |
 
 Putting it together:
 

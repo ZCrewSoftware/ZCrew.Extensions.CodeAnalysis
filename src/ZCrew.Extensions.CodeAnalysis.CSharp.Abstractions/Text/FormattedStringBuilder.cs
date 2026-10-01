@@ -7,6 +7,9 @@ namespace ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 /// <summary>
 ///     Wrapper for a <see cref="StringBuilder" /> type that adds indentation to new lines.
 /// </summary>
+/// <remarks>
+///     This only writes <c>LF</c> newlines, even on Windows.
+/// </remarks>
 public sealed class FormattedStringBuilder
 {
     private readonly StringBuilder builder;
@@ -125,7 +128,7 @@ public sealed class FormattedStringBuilder
     /// </exception>
     public FormattedStringBuilder AppendLine()
     {
-        this.builder.AppendLine().Append(' ', this.leadingSpaces);
+        this.builder.Append('\n').Append(' ', this.leadingSpaces);
         return this;
     }
 
@@ -140,7 +143,7 @@ public sealed class FormattedStringBuilder
     /// </exception>
     public FormattedStringBuilder AppendLine(string value)
     {
-        this.builder.AppendLine(value).Append(' ', this.leadingSpaces);
+        this.builder.Append(value).Append('\n').Append(' ', this.leadingSpaces);
         return this;
     }
 
@@ -156,7 +159,7 @@ public sealed class FormattedStringBuilder
     /// </exception>
     public FormattedStringBuilder AppendLine(char value)
     {
-        this.builder.Append(value).AppendLine().Append(' ', this.leadingSpaces);
+        this.builder.Append(value).Append('\n').Append(' ', this.leadingSpaces);
         return this;
     }
 

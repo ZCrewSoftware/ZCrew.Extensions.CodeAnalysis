@@ -1,11 +1,6 @@
 <Project>
-  <!-- Import Directory.Build.props from above folder -->
-  <PropertyGroup>
-    <ParentDirectoryBuildPropsPath>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))</ParentDirectoryBuildPropsPath>
-  </PropertyGroup>
-  <ImportGroup>
-    <Import Condition="'$(ParentDirectoryBuildPropsPath)' != ''" Project="$(ParentDirectoryBuildPropsPath)" />
-  </ImportGroup>
+  <!-- This makes sure the outer Directory.Build.props file in the root of the solution is read and applied -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"/>
 
   <!-- Common properties for all test projects -->
   <PropertyGroup>
@@ -15,10 +10,16 @@
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <RoslynVersion Condition="'$(TargetFramework)' == 'net9.0'">4.14.0</RoslynVersion>
+    <RoslynVersion Condition="'$(TargetFramework)' != 'net9.0'">5.9.0</RoslynVersion>
+  </PropertyGroup>
+
   <!-- Common packages for all test projects -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
-    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
   <!-- Exclude test projects from code coverage -->

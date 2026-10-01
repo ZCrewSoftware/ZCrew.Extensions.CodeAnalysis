@@ -17,6 +17,8 @@ internal static class GeneratorTest
         return RoslynTestBuilder
             .Create()
             .WithReferenceAssemblies(ReferenceAssemblies.Net.Net100)
+            // Roslyn may be built against an older runtime; the SDK suppresses these unification warnings by default
+            .WithDisabledDiagnostics("CS1701", "CS1702")
             // All tests will inevitably use this project
             .WithAdditionalReferences("Microsoft.CodeAnalysis.dll")
             .WithAdditionalReferences("Microsoft.CodeAnalysis.CSharp.dll")

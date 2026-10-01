@@ -152,11 +152,11 @@ source tree via `TestPath.ForCaller()`, they do not need to be copied to `bin`:
 </ItemGroup>
 ```
 
-Expected generated files are compared exactly, with no line-ending normalization, so a `.g.cs` fixture has to match
-the generator's output byte for byte. Keep git from rewriting them:
+Expected generated files are compared exactly, with line-ending normalization, so a `.g.cs` fixture has to match the
+generator's output byte for byte. Keep git from rewriting them:
 
 ```gitattributes
-*.g.cs -text
+*.g.cs -text eol=lf
 ```
 
 and check that your formatter skips them (CSharpier ignores `*.g.cs` by default; others may not). If the generator

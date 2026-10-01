@@ -1,7 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Specifically target netstandard2.0 for a source generator project -->
-    <TargetFramework>netstandard2.0</TargetFramework>
     <!-- https://github.com/dotnet/roslyn/issues/63290 -->
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <!-- Packed by the ZCrew.Extensions.CodeAnalysis.CSharp packaging project -->
